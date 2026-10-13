@@ -49,6 +49,22 @@ step() { case ",$ONLY," in *",$1,"*) return 0 ;; *) return 1 ;; esac; }
 confirm() { [ "$YES" -eq 1 ] && return 0; read -r -p "$1 [s/N] " r; [[ "$r" =~ ^[sSyY]$ ]]; }
 run() { if [ "$DRY" -eq 1 ]; then echo "  (dry-run) $*"; else "$@"; fi; }
 
+# Windows nativo (Git Bash/MSYS/Cygwin) no está soportado: suele ser la extensión de VS Code instalada
+# solo en local aunque la ventana esté conectada a WSL. Se para antes de tocar ~/.claude de Windows.
+case "$(uname -s)" in
+  MINGW*|MSYS*|CYGWIN*)
+    cat >&2 <<'EOF'
+[lf] Claude Code se está ejecutando en Windows nativo, no en WSL. El arnés solo se instala en WSL.
+     Si la ventana de VS Code ya está conectada a WSL, la extensión Claude Code está instalada solo en local:
+       1. Extensiones → Claude Code → «Install in WSL: <distro>» (debe aparecer en «WSL: <distro> - Installed»).
+       2. Ctrl+Shift+P → «Developer: Reload Window».
+       3. En el panel de Claude: /plugins → añade Lf-SergioDominguez/lf-holder e instala lf (alcance user).
+       4. /lf:setup
+     No instales jq en Windows ni lances este script desde WSL con la ruta C:/…
+EOF
+    exit 2 ;;
+esac
+
 command -v jq >/dev/null || { echo "jq es necesario (apt-get install jq)" >&2; exit 1; }
 mkdir -p "$CLAUDE_DIR" "$BACKUPS"
 

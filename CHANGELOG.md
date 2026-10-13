@@ -4,6 +4,12 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+## [0.5.1] — 2026-10-13
+
+### Corregido
+
+- `/lf:setup` e `install.sh` detectan Windows nativo (`MINGW`, `MSYS`, `CYGWIN` o rutas `C:/…`) y paran antes de usar `jq` o tocar `~/.claude`. Es el caso de la extensión de VS Code instalada solo en local aunque la ventana esté conectada a WSL. El mensaje indica cómo instalarla en WSL (*Install in WSL* → *Reload Window* → `/plugins` → `/lf:setup`). README y ONBOARDING lo explican.
+
 ## [0.5.0] — 2026-10-13
 
 Guardia de lectura, filtro de salidas más completo y modo de salida telegráfica opt-in. Quien ya tenga el arnés instalado: `/plugin marketplace update lefebvriano-holder` y `/lf:setup`.

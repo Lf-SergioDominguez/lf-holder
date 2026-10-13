@@ -5,6 +5,12 @@ argument-hint: "[--with-rtk] [--only=…] [--rollback]"
 
 Instala o actualiza la parte del arnés que un plugin no puede aportar. Argumentos: `$ARGUMENTS`
 
+## 0a. Comprobar que la sesión corre en Linux, macOS o WSL
+
+Antes de nada ejecuta `uname -s`. Si empieza por `MINGW`, `MSYS` o `CYGWIN`, o la ruta del plugin o de `~/.claude` es de Windows (`C:/…`, `C:\…`), **para aquí**. No instales `jq`, no busques WSL por tu cuenta (`wsl.exe`, `\\wsl$`) y no lances el script con rutas de Windows. Explica al usuario, en estas palabras:
+
+> Claude Code se está ejecutando en Windows, no en WSL. Aunque la ventana de VS Code esté conectada a WSL, la extensión Claude Code está instalada solo en local. Arreglo: Extensiones → Claude Code → **Install in WSL: \<distro\>**; después `Ctrl+Shift+P` → *Developer: Reload Window*; en el panel de Claude, `/plugins` → añade `Lf-SergioDominguez/lf-holder` e instala `lf`; y repite `/lf:setup`.
+
 ## 0. Resolver la ruta del plugin
 
 Usa `${CLAUDE_PLUGIN_ROOT}` si aparece sustituida por una ruta real (absoluta, sin `${`). Si llega literal o vacía, resuélvela así y úsala como `PLUGIN_ROOT` en los pasos siguientes:

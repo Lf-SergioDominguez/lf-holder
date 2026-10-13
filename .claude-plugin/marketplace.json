@@ -5,13 +5,13 @@
   },
   "metadata": {
     "description": "Arnés del equipo web de Lefebvre para Claude Code y OpenCode: triaje S/M/L sin interrupciones, política de modelos y de contexto, reducción de tokens y skills para PHP/Symfony, WordPress, Astro, Vue y React.",
-    "version": "0.5.0"
+    "version": "0.5.1"
   },
   "plugins": [
     {
       "name": "lf",
       "source": "./plugins/lf",
-      "version": "0.5.0",
+      "version": "0.5.1",
       "description": "Triaje S/M/L, flujos sin interrupciones, política de modelos y de contexto, filtro de salidas de Bash y skills de stack (Symfony, WordPress, Astro/Vue/React, MySQL/Doctrine).",
       "category": "productivity",
       "keywords": [
