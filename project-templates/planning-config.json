@@ -1,0 +1,55 @@
+{
+  "mode": "interactive",
+  "granularity": "standard",
+  "workflow": {
+    "research": false,
+    "plan_check": true,
+    "verifier": false,
+    "auto_advance": true,
+    "nyquist_validation": false,
+    "security_enforcement": false,
+    "discuss_mode": "discuss",
+    "research_before_questions": false,
+    "use_worktrees": false,
+    "plan_bounce": false,
+    "cross_ai_execution": false,
+    "test_gate_timeout": 600
+  },
+  "planning": {
+    "commit_docs": false,
+    "search_gitignored": false
+  },
+  "git": {
+    "create_tag": false
+  },
+  "parallelization": {
+    "enabled": false,
+    "plan_level": true,
+    "task_level": false,
+    "skip_checkpoints": true,
+    "max_concurrent_agents": 2,
+    "min_plans_for_parallel": 2
+  },
+  "gates": {
+    "confirm_project": false,
+    "confirm_phases": false,
+    "confirm_roadmap": true,
+    "confirm_breakdown": false,
+    "confirm_plan": false,
+    "execute_next_plan": false,
+    "issues_review": false,
+    "confirm_transition": true
+  },
+  "safety": {
+    "always_confirm_destructive": true,
+    "always_confirm_external_services": true
+  },
+  "hooks": {
+    "context_warnings": false,
+    "workflow_guard": false,
+    "community": false
+  },
+  "model_profile": "balanced",
+  "response_language": "Spanish",
+  "claude_md_path": "./CLAUDE.md"
+}

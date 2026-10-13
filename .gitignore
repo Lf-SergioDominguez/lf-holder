@@ -1,0 +1,25 @@
+# Settings reales de usuario nunca se versionan
+settings.json
+settings.local.json
+.claude/settings.local.json
+*.bak
+.DS_Store
+
+# Configuración local de Claude Code de este repo (no versionar)
+.claude/
+# Datos de medición locales de measure.sh (ids de sesión, rutas y costes): nunca se versionan
+metrics/
+
+# Nodos de dispositivo que el sandbox de Claude Code deja en el cwd (máscaras de rutas protegidas)
+.bash_profile
+.bashrc
+.gitconfig
+.gitmodules
+.idea
+.mcp.json
+.profile
+.ripgreprc
+.vscode
+.zprofile
+.zshrc
+handoff.md

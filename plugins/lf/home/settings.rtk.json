@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(rtk *)"
+    ]
+  },
+  "sandbox": {
+    "filesystem": {
+      "allowWrite": [
+        "~/.local/share/rtk"
+      ]
+    }
+  }
+}

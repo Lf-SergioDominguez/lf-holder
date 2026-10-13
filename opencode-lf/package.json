@@ -1,0 +1,9 @@
+{
+  "name": "opencode-lf",
+  "private": true,
+  "type": "module",
+  "description": "Arnés lf para OpenCode: reglas globales, permisos, filtro de salidas ruidosas, agentes y comandos.",
+  "dependencies": {
+    "@opencode-ai/plugin": "^1.0.0"
+  }
+}
