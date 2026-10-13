@@ -120,7 +120,7 @@ Con el arnés completo, el contexto fijo converge en **24–27K** en las tres m�
 _Para OpenCode o agentes genéricos ver [opencode-lf/README.md](opencode-lf/README.md)_
 _Para Claude ver [plugins/lf/README.md](plugins/lf/README.md)_
 
-Requisitos: Claude Code ≥ 2.1.257, `jq`, `node` ≥ 20 (solo para podar GSD) y, en Linux/WSL2, `bubblewrap` y `socat` para el sandbox. Linux, macOS o WSL2. No hace falta clonar el repo ni tener credenciales de Git.
+Requisitos: Claude Code ≥ 2.1.257, `jq`, `node` ≥ 20 (solo para podar GSD) y, en Linux/WSL2, `bubblewrap` y `socat` para el sandbox. Linux, macOS o WSL2; Windows nativo también, sin sandbox (`/lf:setup --windows`). No hace falta clonar el repo ni tener credenciales de Git.
 
 Dentro de Claude Code (CLI o extensión de VS Code), en cualquier proyecto:
 
@@ -150,7 +150,7 @@ Reinicia la sesión y comprueba:
 El plugin, los hooks, el `CLAUDE.md` global y `~/.claude/settings.json` son **compartidos** entre la extensión y la CLI, así que el arnés funciona igual. Diferencias a tener en cuenta:
 
 1. **La CLI es opcional**: los tres comandos funcionan escritos en el cuadro de prompt de la extensión. Instálala (`curl -fsSL https://claude.ai/install.sh | bash`) solo si quieres usar `claude plugin …` o `scripts/install.sh` desde el terminal.
-2. **En Windows, trabaja en una ventana Remote-WSL** (`Ctrl+Shift+P` → _WSL: Connect to WSL_). Así la extensión corre dentro de WSL, usa el `~/.claude` de WSL y el sandbox de Bash funciona; en Windows nativo el sandbox no está soportado. Ojo: la ventana conectada a WSL no basta. La extensión Claude Code tiene que aparecer en _WSL: \<distro\> - Installed_; si solo está en _Local_, pulsa **Install in WSL** y recarga la ventana. Si no, sigue corriendo en Windows (rutas `C:/…`, Git Bash) y `/lf:setup` se detiene.
+2. **En Windows, trabaja en una ventana Remote-WSL** (`Ctrl+Shift+P` → _WSL: Connect to WSL_). Así la extensión corre dentro de WSL, usa el `~/.claude` de WSL y el sandbox de Bash funciona; en Windows nativo el sandbox no está soportado. Ojo: la ventana conectada a WSL no basta. La extensión Claude Code tiene que aparecer en _WSL: \<distro\> - Installed_; si solo está en _Local_, pulsa **Install in WSL** y recarga la ventana. Si no, sigue corriendo en Windows (rutas `C:/…`, Git Bash) y `/lf:setup` te pregunta si quieres instalarlo en WSL (te dice cómo) o en Windows. **Windows nativo** funciona sin sandbox: `permissions.defaultMode: dontAsk`, así que Bash solo ejecuta la allowlist. Necesita `jq` (`winget install jqlang.jq`) y se puede forzar con `/lf:setup --windows`. Windows y WSL **no comparten** configuración: si usas la extensión en los dos, instala el plugin y ejecuta `/lf:setup` en cada uno.
 3. **Marketplace y plugin**: escribe `/plugins` en el panel de Claude, pestaña _Marketplaces_, añade `Lf-SergioDominguez/lf-holder`; en la pestaña _Plugins_ instala `lf` con alcance de usuario y después ejecuta `/lf:setup`. Equivale a los comandos de la CLI y queda disponible en ambos.
 4. **Modo de permisos**: la extensión puede **no leer** `permissions.defaultMode` de `settings.json`. Fija el modo en los ajustes de usuario de VS Code (`Ctrl+,` → Extensions → Claude Code → _Initial Permission Mode_ = `acceptEdits`), o elige una vez **Edit automatically** en el indicador de modo del cuadro de prompt: la elección se recuerda para las conversaciones siguientes.
 5. **Comprobar**: `/context`, `/hooks` y `/permissions` funcionan igual escritos en el cuadro de prompt; el menú `/` → _Customize_ → _Hooks_ lista los hooks cargados.
@@ -268,7 +268,7 @@ Por qué GSD se recorta en vez de desinstalarse, por qué Smith se descartó, po
 ## 12. Requisitos y compatibilidad
 
 - Claude Code ≥ 2.1.257 (probado en 2.1.276), CLI o extensión de VS Code (comparten configuración; ver [instalación](#si-usas-la-extensión-de-vs-code))..
-- Linux, macOS o WSL2 (Windows nativo no soporta el sandbox). En WSL2 hace falta `enableWeakerNestedSandbox`, ya incluido.
+- Linux, macOS o WSL2. Windows nativo solo sin sandbox (`/lf:setup --windows`, `jq` vía winget). En WSL2 hace falta `enableWeakerNestedSandbox`, ya incluido.
 - GSD es opcional (el instalador pregunta antes de tocarlo) y RTK también: no se instala salvo con `--with-rtk` o `--only=rtk`. El arnés funciona sin ellos.
 - Modelos: `claude-sonnet` (el más nuevo) por defecto, Haiku para subagentes, `claude-opus` (el más nuevo) solo para planificar tareas L. **Fable no se usa en ningún flujo.** Ver [docs/MODELOS.md](docs/MODELOS.md).
 

@@ -4,6 +4,12 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+## [0.5.2] — 2026-10-13
+
+### Añadido
+
+- `/lf:setup` en Windows nativo pregunta si instalar en WSL (muestra los pasos de *Install in WSL*) o en Windows. Nuevo flag `--windows` en `/lf:setup` e `install.sh`: implica `--no-sandbox` (`sandbox.enabled: false`, `defaultMode: dontAsk`), y si falta `jq` pide instalarlo con `winget install jqlang.jq`. Sin el flag, `install.sh` sigue parando en Windows y sugiere `--windows` (salvo `--rollback`); con el flag fuera de Windows, para. Al terminar en Windows avisa de que WSL tiene su propia configuración y requiere instalar el plugin y repetir `/lf:setup` allí.
+
 ## [0.5.1] — 2026-10-13
 
 ### Corregido

@@ -4,7 +4,7 @@ Arnés de Claude Code del equipo web. Te da: triaje automático de tareas (S/M/L
 
 ## Requisitos
 
-- Claude Code ≥ 2.1.257 (`claude --version`), Linux, macOS o **WSL2** (Windows nativo no soporta sandbox).
+- Claude Code ≥ 2.1.257 (`claude --version`), Linux, macOS o **WSL2**. Windows nativo también, pero sin sandbox (`/lf:setup --windows`, `jq` con `winget install jqlang.jq`).
 - `jq` y `node` ≥ 20 (este último solo para podar GSD); `curl` solo si instalas RTK. En Linux/WSL2, `bubblewrap` y `socat` (el instalador te da el comando `sudo` si faltan).
 - No hace falta clonar el repo ni tener credenciales de Git: el marketplace es público (`Lf-SergioDominguez/lf-holder`).
 - Opcional: GSD (`~/.claude/gsd-core`) si lo usas; el instalador lo recorta sin desinstalarlo.
@@ -47,7 +47,7 @@ Es el filtro seccomp de Claude Code en WSL2. El fragmento ya trae `sandbox.enabl
 Todo lo que instala el arnés (settings globales, CLAUDE.md, plugin, hooks, RTK) es común a la extensión y a la CLI. Pasos específicos:
 
 1. La CLI es opcional: los tres comandos de instalación funcionan escritos en el cuadro de prompt de la extensión. Instálala solo si quieres usar `claude plugin …` o `scripts/install.sh` desde el terminal; la extensión no añade `claude` al PATH.
-2. En Windows, abre VS Code conectado a WSL (*WSL: Connect to WSL*). La extensión debe ejecutarse dentro de WSL para usar el `~/.claude` de WSL y el sandbox de Bash (no soportado en Windows nativo). Comprueba en Extensiones que Claude Code figura en *WSL: \<distro\> - Installed*; si solo está en *Local*, pulsa **Install in WSL** y *Developer: Reload Window*. Si no lo haces, la extensión corre en Windows aunque la ventana esté en WSL, y `/lf:setup` se detiene con ese aviso.
+2. En Windows, abre VS Code conectado a WSL (*WSL: Connect to WSL*). La extensión debe ejecutarse dentro de WSL para usar el `~/.claude` de WSL y el sandbox de Bash (no soportado en Windows nativo). Comprueba en Extensiones que Claude Code figura en *WSL: \<distro\> - Installed*; si solo está en *Local*, pulsa **Install in WSL** y *Developer: Reload Window*. Si no lo haces, la extensión corre en Windows aunque la ventana esté en WSL, y `/lf:setup` te pregunta si quieres instalarlo en WSL (y te explica cómo) o en Windows nativo, sin sandbox y con `dontAsk`. Windows y WSL **no comparten** `~/.claude`: si usas la extensión en ambos, instala el plugin `lf` y ejecuta `/lf:setup` en cada uno.
 3. En el panel de Claude escribe `/plugins`: pestaña **Marketplaces** → añade `Lf-SergioDominguez/lf-holder`; pestaña **Plugins** → instala `lf`, alcance *user*. Es lo mismo que `claude plugin marketplace add` + `claude plugin install`.
 4. Escribe `/lf:setup` en el cuadro de prompt y aprueba el permiso fuera del sandbox.
 5. **Modo de permisos**: la extensión puede ignorar `permissions.defaultMode` de `settings.json`. Elige una vez **Edit automatically** en el indicador de modo (abajo en el cuadro de prompt) y se mantiene en las siguientes conversaciones, o fíjalo en los ajustes de VS Code: `Ctrl+,` → Extensions → Claude Code → **Initial Permission Mode** → `acceptEdits`. Sin esto arrancarás en *Manual* y volverás a ver prompts de edición.

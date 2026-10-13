@@ -13,10 +13,11 @@
 #   /plugin install lf@lefebvriano-holder
 #   /lf:setup   (ejecuta este script desde la caché del plugin)
 #
-# Uso: plugins/lf/scripts/install.sh [--only=deps,claude-md,settings,gsd,rtk] [--with-rtk] [--dry-run] [--no-sandbox] [--yes] [--rollback]
+# Uso: plugins/lf/scripts/install.sh [--only=deps,claude-md,settings,gsd,rtk] [--with-rtk] [--dry-run] [--no-sandbox] [--windows] [--yes] [--rollback]
 #   --with-rtk    añade el paso rtk a los pasos por defecto (deps,claude-md,settings,gsd)
 #   --dry-run     muestra qué haría (diffs) sin tocar nada
 #   --no-sandbox  no instala deps ni activa sandbox; usa permissions.defaultMode=dontAsk
+#   --windows     permite instalar en Windows nativo (Git Bash); implica --no-sandbox
 #   --yes         no pide confirmación en los pasos gsd/rtk (no activa RTK por sí solo)
 #   --rollback    restaura el último backup de settings.json y CLAUDE.md y sale
 set -euo pipefail
@@ -27,7 +28,7 @@ SETTINGS="$CLAUDE_DIR/settings.json"
 BACKUPS="$CLAUDE_DIR/backups"
 ONLY="deps,claude-md,settings,gsd"
 WITH_RTK=0
-DRY=0; NOSANDBOX=0; YES=0; ROLLBACK=0
+DRY=0; NOSANDBOX=0; WINDOWS=0; YES=0; ROLLBACK=0
 
 for arg in "$@"; do
   case "$arg" in
@@ -35,9 +36,10 @@ for arg in "$@"; do
     --with-rtk) WITH_RTK=1 ;;
     --dry-run) DRY=1 ;;
     --no-sandbox) NOSANDBOX=1 ;;
+    --windows) WINDOWS=1 ;;
     --yes|-y) YES=1 ;;
     --rollback) ROLLBACK=1 ;;
-    -h|--help) sed -n '2,21p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,22p' "$0"; exit 0 ;;
     *) echo "argumento desconocido: $arg" >&2; exit 1 ;;
   esac
 done
@@ -49,23 +51,45 @@ step() { case ",$ONLY," in *",$1,"*) return 0 ;; *) return 1 ;; esac; }
 confirm() { [ "$YES" -eq 1 ] && return 0; read -r -p "$1 [s/N] " r; [[ "$r" =~ ^[sSyY]$ ]]; }
 run() { if [ "$DRY" -eq 1 ]; then echo "  (dry-run) $*"; else "$@"; fi; }
 
-# Windows nativo (Git Bash/MSYS/Cygwin) no está soportado: suele ser la extensión de VS Code instalada
-# solo en local aunque la ventana esté conectada a WSL. Se para antes de tocar ~/.claude de Windows.
+# Windows nativo (Git Bash/MSYS/Cygwin): sin --windows suele ser la extensión de VS Code instalada solo en
+# local aunque la ventana esté conectada a WSL, y se para antes de tocar ~/.claude de Windows. Con --windows
+# se instala a propósito en Windows, sin sandbox (no soportado ahí): defaultMode=dontAsk.
+IS_WINDOWS=0
 case "$(uname -s)" in
-  MINGW*|MSYS*|CYGWIN*)
-    cat >&2 <<'EOF'
-[lf] Claude Code se está ejecutando en Windows nativo, no en WSL. El arnés solo se instala en WSL.
+  MINGW*|MSYS*|CYGWIN*) IS_WINDOWS=1 ;;
+esac
+# --rollback solo restaura backups: se permite en Windows sin --windows.
+if [ "$IS_WINDOWS" -eq 1 ] && [ "$WINDOWS" -eq 0 ] && [ "$ROLLBACK" -eq 0 ]; then
+  cat >&2 <<'EOF'
+[lf] Claude Code se está ejecutando en Windows nativo, no en WSL.
      Si la ventana de VS Code ya está conectada a WSL, la extensión Claude Code está instalada solo en local:
        1. Extensiones → Claude Code → «Install in WSL: <distro>» (debe aparecer en «WSL: <distro> - Installed»).
        2. Ctrl+Shift+P → «Developer: Reload Window».
        3. En el panel de Claude: /plugins → añade Lf-SergioDominguez/lf-holder e instala lf (alcance user).
        4. /lf:setup
-     No instales jq en Windows ni lances este script desde WSL con la ruta C:/…
+     No lances este script desde WSL con la ruta C:/…
+     Si quieres instalarlo en Windows sin WSL (sin sandbox): /lf:setup --windows
 EOF
-    exit 2 ;;
-esac
+  exit 2
+fi
+if [ "$WINDOWS" -eq 1 ]; then
+  if [ "$IS_WINDOWS" -eq 1 ]; then
+    NOSANDBOX=1
+    warn "modo Windows nativo: sin sandbox (permissions.defaultMode=dontAsk)"
+  else
+    echo "[lf] --windows solo vale en Windows nativo (Git Bash); aquí uname es $(uname -s). Repite sin --windows." >&2
+    exit 2
+  fi
+fi
 
-command -v jq >/dev/null || { echo "jq es necesario (apt-get install jq)" >&2; exit 1; }
+if ! command -v jq >/dev/null; then
+  if [ "$IS_WINDOWS" -eq 1 ]; then
+    echo "jq es necesario: ejecuta en PowerShell «winget install jqlang.jq», reinicia VS Code y repite /lf:setup --windows" >&2
+  else
+    echo "jq es necesario (apt-get install jq)" >&2
+  fi
+  exit 1
+fi
 mkdir -p "$CLAUDE_DIR" "$BACKUPS"
 
 # ---------------------------------------------------------------- rollback
@@ -78,6 +102,7 @@ if [ "$ROLLBACK" -eq 1 ]; then
 fi
 
 # ---------------------------------------------------------------- deps (sandbox)
+step deps && [ "$NOSANDBOX" -eq 1 ] && log "sin sandbox: paso deps omitido"
 if step deps && [ "$NOSANDBOX" -eq 0 ]; then
   if [[ "$(uname -s)" == "Linux" ]]; then
     missing=()
@@ -219,4 +244,9 @@ if [ "$DRY" -eq 0 ]; then
   echo "   /permissions  → defaultMode acceptEdits y reglas cargadas"
   echo "   /context      → CLAUDE.md global visible; listado de skills reducido"
   echo "   Reinicia la sesión para que los hooks nuevos se carguen."
+  if [ "$IS_WINDOWS" -eq 1 ]; then
+    echo
+    warn "Windows y WSL tienen configuraciones separadas (C:\\Users\\<usuario>\\.claude frente a ~/.claude de la distro)."
+    warn "Si también usas VS Code conectado a WSL, instala allí el plugin lf (/plugins) y repite /lf:setup."
+  fi
 fi
