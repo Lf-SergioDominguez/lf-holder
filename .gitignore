@@ -22,4 +22,4 @@ metrics/
 .vscode
 .zprofile
 .zshrc
-handoff.md
+/handoff.md

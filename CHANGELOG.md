@@ -4,6 +4,12 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+## [0.6.1] — 2026-10-15
+
+### Corregido
+
+- `.gitignore` ignoraba cualquier `handoff.md` del árbol, no solo el de trabajo en la raíz: el repo público se publicó sin `plugins/lf/commands/handoff.md`, `opencode-lf/commands/handoff.md` ni `docs/templates/handoff.md`, y `/lf:handoff` desaparecía al actualizar a 0.6.0. La regla pasa a `/handoff.md`.
+
 ## [0.6.0] — 2026-10-15
 
 ### Añadido
