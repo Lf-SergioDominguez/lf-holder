@@ -19,6 +19,13 @@ Recibes un plan ya cerrado y lo ejecutas. No vuelves a planificar, no amplías e
 5. Al cerrar el hito, lanza `lf:reviewer` (solo lectura) sobre los ficheros tocados y corrige los hallazgos de severidad alta.
 6. No hagas commit salvo que el plan lo pida explícitamente.
 
+## Código mínimo
+
+- Antes de escribir: ¿ya existe en el código (helper, servicio, componente)? Úsalo. ¿Lo da la stdlib, el framework o una dependencia instalada? Úsalo. Si no, lo mínimo que funcione: nada de opciones, wrappers ni código «para luego» que el plan no pida. Nunca añadas una dependencia por pocas líneas.
+- Mínimo no es saltarse capas: respeta la estructura del proyecto (DTO + Validator, servicios, escapado y nonces).
+- El cambio va entero: llamadores, tests y fixtures que rompa. En un bug, busca todos los llamadores y arregla la causa una vez, en el código compartido.
+- Lógica no trivial (rama, bucle, parser, dinero, seguridad) deja un test pequeño. Nunca recortes validación en fronteras de confianza, errores que evitan pérdida de datos, seguridad ni accesibilidad.
+
 ## Salida (≤15 líneas)
 
 ```
@@ -29,6 +36,7 @@ Verificación: <comando> → <resultado en una línea>
 Asumido (si lo hubo): <decisión> — <por qué>
 Ficheros tocados: <lista>
 Cómo probarlo: <pasos concretos>
+No comprobado: <lo que no se verificó y su riesgo, o «nada»>
 ```
 
 Si el hito no puede cerrarse, no lo declares cerrado: devuelve `Hito: bloqueado`, qué falta y qué necesita un humano.

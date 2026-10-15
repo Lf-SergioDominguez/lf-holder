@@ -33,7 +33,9 @@ if [ "$NOSANDBOX" -eq 1 ]; then
   FRAG_JSON=$(jq '.permissions.defaultMode = "dontAsk" | .sandbox = {enabled: false}' <<<"$FRAG_JSON")
 fi
 
-MERGED=$(jq -n --argjson a "$(cat "$TARGET")" --argjson b "$FRAG_JSON" '
+# Ambos JSON entran por stdin (input; input), no como argumentos: --argjson con el
+# settings.json completo revienta el límite de línea de comandos de Windows (~32 KB).
+MERGED=$({ cat "$TARGET"; printf '%s\n' "$FRAG_JSON"; } | jq -n '
   def hookcmds: [ .[]?.hooks[]?.command ];
   def merge(a; b):
     if (a|type) == "object" and (b|type) == "object" then
@@ -48,7 +50,7 @@ MERGED=$(jq -n --argjson a "$(cat "$TARGET")" --argjson b "$FRAG_JSON" '
         | a + [ b[] | select( ([.hooks[]?.command] - $have) | length > 0 ) ]
       else b end
     else b end;
-  merge($a; $b)
+  input as $a | input as $b | merge($a; $b)
 ')
 
 if [ "$DRY" -eq 1 ]; then

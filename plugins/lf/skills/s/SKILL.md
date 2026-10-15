@@ -13,6 +13,6 @@ Recordatorio del flujo S:
 1. Localiza con Grep/Glob; lee solo el rango necesario.
 2. Implementa el cambio mínimo que resuelve la tarea.
 3. Verifica con el comando más barato (test con `--filter`, `php -l`, `tsc --noEmit`, `vue-tsc`); salidas largas vía `lf:verbose-runner`.
-4. Entrega: resumen de 3–6 líneas, ficheros tocados, cómo probarlo. Cierra con `Tarea cerrada — recomiendo /clear antes de la siguiente`.
+4. Entrega: resumen de 3–6 líneas, ficheros tocados, cómo probarlo y una línea con lo que no has comprobado y sus riesgos. Cierra con `Tarea cerrada — recomiendo /clear antes de la siguiente`.
 
 Sin AskUserQuestion, sin commit, sin subagentes salvo `lf:verbose-runner`. Si falta un dato, asúmelo, dilo en una línea y sigue.

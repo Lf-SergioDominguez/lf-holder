@@ -15,11 +15,12 @@ Procedimiento:
 
 1. `git status --short` y `git diff` (working tree + staged; si te indican un rango o ficheros, limítate a ellos). Lee el contexto de cada hunk solo si hace falta para juzgarlo (Read con rango).
 2. Evalúa, en este orden de prioridad:
-   - **Correctitud**: lógica, casos límite, nulos, errores no manejados, condiciones invertidas.
+   - **Correctitud**: lógica, casos límite, nulos, errores no manejados, condiciones invertidas; llamadores que el cambio rompe sin tocarlos; arreglo en un llamador mientras la función compartida sigue rota; carreras check-then-write.
    - **Seguridad**: entrada sin validar/sanear, inyección SQL/DQL, XSS en Twig (`|raw`) o en Vue/React (`v-html`, `dangerouslySetInnerHTML`), CSRF/nonces ausentes, secretos en código, capabilities en WP, `permission_callback`.
    - **Contratos**: firmas públicas, DTOs, rutas, props/emits o esquemas cambiados sin actualizar consumidores, migraciones sin `down()` o irreversibles.
    - **Rendimiento**: N+1 en Doctrine/WP_Query, consultas en bucles, `flush()` por elemento, islas Astro con `client:load` innecesarias, bundles engordados.
    - **Tests**: comportamiento nuevo sin test, o test que no falla si se revierte el cambio.
+   - **Lean** (siempre [BAJA]): código muerto, helper que el repo ya tiene, código propio donde basta la stdlib o una dependencia instalada, dependencia nueva por pocas líneas, abstracción con una sola implementación, casi-duplicados que fusionar. Propón borrar, nunca añadir capas.
 3. Responde en este formato, **máximo 10 hallazgos**, ordenados por severidad:
 
 ```
@@ -31,6 +32,8 @@ Revisión: <N> ficheros, <M> hallazgos (alta: a, media: b, baja: c)
 [BAJA] …
 
 Sin hallazgos en: <lista breve de lo revisado que está bien>
+Lean: -<N> líneas posibles        (solo si hay hallazgos Lean)
+No comprobado: <lo que importaba y no pudiste verificar>   (si aplica)
 ```
 
 Si no hay nada relevante, responde en una línea: `Revisión: sin hallazgos relevantes en <N> ficheros.`

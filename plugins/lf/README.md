@@ -23,6 +23,8 @@ La otra mitad (settings globales, CLAUDE.md, poda de GSD y, opcional con `--with
 | `prompting`                                                                                                                                                                                    | `/lf:prompting <petición>` | 0                          | Cómo pedir las cosas y cómo revisar las instrucciones del arnés                                                                                   |
 | 6 skills adaptadas (`debugging-and-error-recovery`, `code-review-and-quality`, `api-and-interface-design`, `incremental-implementation`, `security-and-hardening`, `performance-optimization`) | automática                 | descripción                | Debugging, revisión, diseño de API, implementación incremental, seguridad, rendimiento (de agent-skills, MIT; licencia en `LICENSE-agent-skills`) |
 
+La §9 «Código mínimo» del CLAUDE.md global y los criterios *lean* de `executor` y `reviewer` se destilan de [ponytail](https://github.com/dietrichgebert/ponytail) (MIT; licencia en `LICENSE-ponytail`).
+
 ## Comandos
 
 | Invocación                  | Qué hace                                                                                                                                                                                |

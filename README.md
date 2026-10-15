@@ -274,4 +274,4 @@ Por qué GSD se recorta en vez de desinstalarse, por qué Smith se descartó, po
 
 ## 13. Licencia
 
-[MIT](LICENSE). Las seis skills adaptadas de [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) conservan su aviso MIT en [plugins/lf/LICENSE-agent-skills](plugins/lf/LICENSE-agent-skills) y [opencode-lf/LICENSE-agent-skills](opencode-lf/LICENSE-agent-skills).
+[MIT](LICENSE). Las seis skills adaptadas de [addyosmani/agent-skills](https://github.com/addyosmani/agent-skills) conservan su aviso MIT en [plugins/lf/LICENSE-agent-skills](plugins/lf/LICENSE-agent-skills) y [opencode-lf/LICENSE-agent-skills](opencode-lf/LICENSE-agent-skills). Las reglas de código mínimo destiladas de [dietrichgebert/ponytail](https://github.com/dietrichgebert/ponytail) conservan el suyo en [plugins/lf/LICENSE-ponytail](plugins/lf/LICENSE-ponytail) y [opencode-lf/LICENSE-ponytail](opencode-lf/LICENSE-ponytail).

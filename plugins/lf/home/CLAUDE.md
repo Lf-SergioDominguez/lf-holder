@@ -1,4 +1,4 @@
-<!-- lf-harness 0.5.2 -->
+<!-- lf-harness 0.5.3 -->
 # Arnés LF — reglas globales
 
 Equipo web Lefebvre: PHP/Symfony, WordPress, Node, Astro, React, Vue, MySQL. La ruta y la forma de ejecutar cada proyecto las indica su propio `CLAUDE.md`.
@@ -37,7 +37,7 @@ Antes de tocar nada clasifico la tarea y lo digo: `Triaje: S|M|L — <motivo en 
 1. Localizo con Grep/Glob. Leo solo el rango necesario.
 2. Implemento.
 3. Verifico con el comando más barato que pruebe el cambio (test concreto con `--filter`, `php -l`, `tsc --noEmit`, `vue-tsc`); si la salida puede superar 40 líneas la delego al agente `lf:verbose-runner`.
-4. Entrego: resumen de 3–6 líneas, ficheros tocados y cómo probarlo.
+4. Entrego: resumen de 3–6 líneas, ficheros tocados, cómo probarlo y una línea con lo que no he comprobado y sus riesgos.
    Sin preguntas, sin AskUserQuestion, sin commit. Si falta un dato imposible de inferir del código, lo asumo, lo digo en una línea y sigo.
 
 ## 3. Flujo M — contrato de un minuto, luego autónomo
@@ -46,7 +46,7 @@ Antes de tocar nada clasifico la tarea y lo digo: `Triaje: S|M|L — <motivo en 
 2. Si el contrato es inequívoco continúo sin esperar. Si hay una decisión con impacto real (nombre público, esquema, ruta) la marco como `Asumo: X` y continúo; el usuario corrige después.
 3. Implemento por capas (dato → servicio → controlador/API → vista) verificando cada capa con `lf:verbose-runner`.
 4. Revisión final de solo lectura con el agente `lf:reviewer`.
-5. Entrego resumen, lista de asunciones y cómo probarlo. Sin commit salvo petición explícita.
+5. Entrego resumen, lista de asunciones, cómo probarlo y lo que no he comprobado. Sin commit salvo petición explícita.
 
 ## 4. Flujo L — arquitectura primero, GSD después
 
@@ -86,7 +86,22 @@ Los MCP se habilitan por sesión y solo si la tarea los necesita. Al empezar, si
 - **MySQL**: solo lecturas (`SELECT`, `SHOW`, `EXPLAIN`, `DESCRIBE`). DDL o DML destructivo, nunca.
 - Detalles por stack en las skills `lf:symfony`, `lf:wordpress`, `lf:frontend-astro-vue-react`, `lf:mysql-doctrine` (se cargan solas al tocar sus ficheros).
 
-## 9. Errores que no cometo
+## 9. Código mínimo
+
+Perezoso con la solución, nunca con el cambio. Antes de escribir, me quedo con la primera opción que funcione entera:
+
+1. ¿Hace falta? Lo que nadie pidió (opciones, flexibilidad, código «para luego») no se escribe; lo nombro en una línea.
+2. ¿Ya existe en el código (helper, servicio, componente, patrón)? Lo uso como lo usa el código de alrededor.
+3. ¿Lo da la stdlib, el framework o una dependencia ya instalada? Lo uso. Nunca añado una dependencia por pocas líneas.
+4. Si no: lo mínimo que funcione. Borrar gana a añadir; sin wrappers ni abstracciones con una sola implementación.
+
+- Mínimo no es saltarse capas: respeto la estructura del proyecto (Symfony: DTO + Validator y servicio; WP: escapado, nonces y capabilities).
+- El cambio sí va entero: llamadores, tests y fixtures que rompa entran en la tarea. En un bug, antes de editar busco todos los llamadores y arreglo la causa una vez, en el código compartido.
+- Lógica no trivial (rama, bucle, parser, dinero, seguridad) deja un test pequeño; lo trivial, ninguno.
+- Nunca recorto: validación en fronteras de confianza, errores que evitan pérdida de datos, seguridad, accesibilidad, lo que pidió el usuario.
+- A igual tamaño, la opción correcta en los casos límite. Comentarios solo para el *porqué*.
+
+## 10. Errores que no cometo
 
 - No hago commits ni `push` por iniciativa propia, ni PRs, ni `--amend` sobre lo publicado. Commit y push los decide el usuario: solo si me los pide, y el permiso `ask` le pedirá confirmación.
 - No relanzo la suite completa para «asegurarme» tras un cambio acotado.
@@ -96,7 +111,7 @@ Los MCP se habilitan por sesión y solo si la tarea los necesita. Al empezar, si
 - No dejo logs ni ficheros temporales en el repo.
 - No confío en plugins/proxies que prometen reducir tokens (RTK incluido) sin medir antes: muchos hacen el efecto contrario.
 
-## 10. Git
+## 11. Git
 
 Commit y push los decide siempre el usuario: no los hago por iniciativa propia, solo si me los pide (S/M/L), y ambos están en `ask`, así que se confirman uno a uno. Conventional Commits en inglés, atómicos. No hago PRs, `reset --hard`, `checkout -- .`, `clean` ni `--amend` (deny). En L, GSD comitea por tarea: cada commit pasa por `ask` y el usuario decide; si lo rechaza, continúo sin commitear y lo anoto en el resumen del hito. `planning.commit_docs` va a `false`.
 

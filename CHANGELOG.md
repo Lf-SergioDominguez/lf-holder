@@ -4,6 +4,22 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+## [0.6.0] — 2026-10-15
+
+### Añadido
+
+- Sección §9 «Código mínimo» en `home/CLAUDE.md` y `opencode-lf/AGENTS.md`, destilada de [ponytail](https://github.com/dietrichgebert/ponytail) (MIT): escalera reutilizar → stdlib/dependencia instalada → mínimo, sin saltarse las capas del proyecto; el cambio entero (llamadores, tests, fixtures); test pequeño solo para lógica no trivial; lista de lo que nunca se recorta. «Errores que no cometo» y «Git» pasan a §10 y §11.
+- `executor` recibe las mismas reglas en versión compacta (no lee el CLAUDE.md) y una línea `No comprobado:` en su salida.
+- `reviewer`: categoría **Lean** ([BAJA]: código muerto, helper ya existente, abstracción con una implementación, casi-duplicados), más casos de correctitud (llamadores rotos, arreglo en un llamador con la función compartida rota, check-then-write) y líneas `Lean: -N líneas posibles` y `No comprobado:`.
+- La entrega de los flujos S y M cierra con una línea de lo no comprobado y sus riesgos.
+- `LICENSE-ponytail` en `plugins/lf/` y `opencode-lf/`.
+
+## [0.5.3] — 2026-10-13
+
+### Corregido
+
+- `merge-settings.sh` pasa `settings.json` y el fragmento a `jq` por stdin en vez de con `--argjson`: en Windows nativo, un `settings.json` de más de ~32 KB fallaba con *Argument list too long* y bloqueaba `/lf:setup --windows`.
+
 ## [0.5.2] — 2026-10-13
 
 ### Añadido
