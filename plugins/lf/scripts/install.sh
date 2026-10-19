@@ -7,18 +7,21 @@
 #   gsd        si GSD está instalado: poda sus hooks (deja write-guard), perfil `core`, quita agentes sueltos
 #   rtk        OPCIONAL (no va por defecto; actívalo con --with-rtk o --only=rtk): instala RTK (rtk-ai/rtk),
 #              fusiona home/settings.rtk.json y registra su hook global `rtk hook claude`
+#   taste      OPCIONAL (no va por defecto; actívalo con --with-taste o --only=taste): habilita el plugin
+#              taste-skill (Leonxlnx/taste-skill, MIT) para diseño anti-slop; Claude Code lo descarga al abrir sesión
 #
 # El plugin `lf` (skills, agentes, hooks) se instala aparte desde Claude Code:
 #   /plugin marketplace add Lf-SergioDominguez/lf-holder
 #   /plugin install lf@lefebvriano-holder
 #   /lf:setup   (ejecuta este script desde la caché del plugin)
 #
-# Uso: plugins/lf/scripts/install.sh [--only=deps,claude-md,settings,gsd,rtk] [--with-rtk] [--dry-run] [--no-sandbox] [--windows] [--yes] [--rollback]
+# Uso: plugins/lf/scripts/install.sh [--only=deps,claude-md,settings,gsd,rtk,taste] [--with-rtk] [--with-taste] [--dry-run] [--no-sandbox] [--windows] [--yes] [--rollback]
 #   --with-rtk    añade el paso rtk a los pasos por defecto (deps,claude-md,settings,gsd)
+#   --with-taste  añade el paso taste a los pasos por defecto
 #   --dry-run     muestra qué haría (diffs) sin tocar nada
 #   --no-sandbox  no instala deps ni activa sandbox; usa permissions.defaultMode=dontAsk
 #   --windows     permite instalar en Windows nativo (Git Bash); implica --no-sandbox
-#   --yes         no pide confirmación en los pasos gsd/rtk (no activa RTK por sí solo)
+#   --yes         no pide confirmación en los pasos gsd/rtk/taste (no activa RTK ni taste-skill por sí solo)
 #   --rollback    restaura el último backup de settings.json y CLAUDE.md y sale
 set -euo pipefail
 
@@ -28,22 +31,25 @@ SETTINGS="$CLAUDE_DIR/settings.json"
 BACKUPS="$CLAUDE_DIR/backups"
 ONLY="deps,claude-md,settings,gsd"
 WITH_RTK=0
+WITH_TASTE=0
 DRY=0; NOSANDBOX=0; WINDOWS=0; YES=0; ROLLBACK=0
 
 for arg in "$@"; do
   case "$arg" in
     --only=*) ONLY="${arg#--only=}" ;;
     --with-rtk) WITH_RTK=1 ;;
+    --with-taste) WITH_TASTE=1 ;;
     --dry-run) DRY=1 ;;
     --no-sandbox) NOSANDBOX=1 ;;
     --windows) WINDOWS=1 ;;
     --yes|-y) YES=1 ;;
     --rollback) ROLLBACK=1 ;;
-    -h|--help) sed -n '2,22p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,25p' "$0"; exit 0 ;;
     *) echo "argumento desconocido: $arg" >&2; exit 1 ;;
   esac
 done
 [ "$WITH_RTK" -eq 1 ] && ONLY="$ONLY,rtk"
+[ "$WITH_TASTE" -eq 1 ] && ONLY="$ONLY,taste"
 
 log()  { printf '\033[1;34m[lf]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[lf]\033[0m %s\n' "$*" >&2; }
@@ -231,6 +237,17 @@ if step rtk; then
     else
       warn "RTK no disponible en PATH tras la instalación; añade ~/.local/bin al PATH y repite --only=rtk"
     fi
+  fi
+fi
+
+# ---------------------------------------------------------------- taste-skill
+if step taste; then
+  if [ "$YES" -eq 1 ] || confirm "¿Habilitar taste-skill (diseño anti-slop; más pesada que frontend-design)?"; then
+    args=("$ROOT/home/settings.taste.json" --target "$SETTINGS")
+    [ "$DRY" -eq 1 ] && args+=(--dry-run)
+    [ "$NOSANDBOX" -eq 1 ] && args+=(--no-sandbox)
+    bash "$ROOT/scripts/merge-settings.sh" "${args[@]}"
+    log "taste-skill habilitado: Claude Code lo descarga al abrir la sesión (solo el plugin principal, no taste-skill-classics)"
   fi
 fi
 

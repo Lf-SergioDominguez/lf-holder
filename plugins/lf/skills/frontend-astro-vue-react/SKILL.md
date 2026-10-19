@@ -40,4 +40,4 @@ paths: "**/*.astro, **/*.vue, **/*.tsx, **/*.jsx, astro.config.*, vite.config.*,
 - Sin dependencias nuevas para lo que ya hace el stack (fechas, fetch, utilidades): pregunta con `Asumo:` antes de añadir una librería.
 - Ficheros >300 líneas: propone partirlos, no los engordes.
 - Nunca leas `dist/`, `node_modules/`, `.astro/` ni `.output/`.
-- Diseño visual: si la tarea es crear UI nueva o rediseñar, usa además la skill `frontend-design` (plugin oficial) para las decisiones estéticas.
+- Diseño visual: si la tarea es crear UI nueva o rediseñar, usa además la skill `frontend-design` (plugin oficial) para las decisiones estéticas. Si el usuario tiene habilitado `taste-skill` (opcional, `/lf:setup --with-taste`), úsala en su lugar cuando pida diseño anti-slop o dirección artística; respeta siempre el sistema de diseño del proyecto si existe.

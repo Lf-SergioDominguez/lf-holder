@@ -1,6 +1,6 @@
 ---
 description: Configura el arnés LF en ~/.claude (CLAUDE.md global, settings, GSD) desde el plugin ya instalado, sin clonar el repo.
-argument-hint: "[--with-rtk] [--only=…] [--no-sandbox] [--windows] [--rollback]"
+argument-hint: "[--with-rtk] [--with-taste] [--only=…] [--no-sandbox] [--windows] [--rollback]"
 ---
 
 Instala o actualiza la parte del arnés que un plugin no puede aportar. Argumentos: `$ARGUMENTS`
@@ -33,7 +33,25 @@ jq -r '.plugins["lf@lefebvriano-holder"][0].installPath // empty' "${CLAUDE_CONF
 
 En modo Windows, convierte `PLUGIN_ROOT` con `cygpath -u "<ruta>"` venga de donde venga (`${CLAUDE_PLUGIN_ROOT}` o `installPath` llegan como `C:\…`, y Git Bash se come las barras invertidas). Después comprueba que `PLUGIN_ROOT/scripts/install.sh` existe.
 
-`$ARGUMENTS` solo admite los flags de `argument-hint` (`--with-rtk`, `--only=<pasos separados por comas>`, `--rollback`, `--no-sandbox`, `--windows`). Si contiene cualquier otra cosa, no ejecutes nada y dilo. Si no existe o `jq` no devuelve nada, para y di que el plugin `lf` no está instalado (`/plugin install lf@lefebvriano-holder`).
+`$ARGUMENTS` solo admite los flags de `argument-hint` (`--with-rtk`, `--with-taste`, `--only=<pasos separados por comas>`, `--rollback`, `--no-sandbox`, `--windows`). Si contiene cualquier otra cosa, no ejecutes nada y dilo. Si no existe o `jq` no devuelve nada, para y di que el plugin `lf` no está instalado (`/plugin install lf@lefebvriano-holder`).
+
+## 0b. Guía: qué activar
+
+Siempre se aplican los pasos base: dependencias del sandbox, CLAUDE.md global y settings. Lo demás es opcional y se elige aquí. Salta este paso entero si `$ARGUMENTS` contiene `--only=` o `--rollback`.
+
+Construye la lista de opcionales **pendientes de preguntar**, quitando los que ya vengan dados por flag (`--with-rtk`, `--with-taste`) o ya estén activos:
+
+- **RTK**: ya activo si `bash "PLUGIN_ROOT/scripts/rtk.sh" status` dice `hook: activo`.
+- **taste-skill**: ya activo si `~/.claude/settings.json` tiene `enabledPlugins["taste-skill@taste-skill"]`.
+- **Poda de GSD**: solo si existe `~/.claude/gsd-core`.
+
+Si queda alguno, haz **una sola pregunta** con AskUserQuestion, `multiSelect: true`, «¿Qué opcionales quieres activar? (sin marcar ninguno, solo se aplica la base)», con una opción por pendiente:
+
+- **RTK**: filtra la salida de los comandos Bash antes de que llegue al modelo. Descarga un binario de github.com. Se activa o desactiva luego con `/lf:rtk`.
+- **taste-skill**: skill de diseño anti-slop (dirección artística, imágenes reales, inspector en navegador). Más potente y configurable que `frontend-design`, pero más pesada en contexto; según su README el inspector necesita Node 22+ y Chrome/Edge/Chromium. Solo el plugin principal, no `taste-skill-classics`.
+- **Poda de GSD**: quita sus hooks salvo write-guard, aplica el perfil `core` y retira agentes sueltos. Reduce el contexto fijo por sesión.
+
+Con las respuestas, sustituye `$ARGUMENTS` por `--only=deps,claude-md,settings` más `,gsd`, `,rtk` y `,taste` según lo elegido (también lo dado por flag), quitando de `$ARGUMENTS` los `--with-*` ya incorporados y conservando `--no-sandbox` y `--windows`. Un paso desmarcado no se ejecuta, aunque sea de los antiguos por defecto: la poda de GSD ya no se aplica sola.
 
 ## 1. Simulación
 
@@ -51,4 +69,4 @@ Si la salida contiene un aviso de dependencias del sandbox («sin TTY: ejecuta t
 
 ## 4. Cierre
 
-Pide que reinicie la sesión para cargar CLAUDE.md, settings y hooks nuevos. Sugiere `/sandbox`, `/permissions` y `/context` para comprobarlo. En modo Windows añade, tal cual: «Windows y WSL tienen configuraciones separadas (`C:\Users\<usuario>\.claude` frente a `~/.claude` de la distro): si también usas VS Code conectado a WSL, instala allí el plugin `lf` (`/plugins`) y repite `/lf:setup`.». Sin más comentarios.
+Pide que reinicie la sesión para cargar CLAUDE.md, settings y hooks nuevos. Si activó RTK, recuérdale que lo puede apagar y encender con `/lf:rtk off|on`. Sugiere `/sandbox`, `/permissions` y `/context` para comprobarlo. En modo Windows añade, tal cual: «Windows y WSL tienen configuraciones separadas (`C:\Users\<usuario>\.claude` frente a `~/.claude` de la distro): si también usas VS Code conectado a WSL, instala allí el plugin `lf` (`/plugins`) y repite `/lf:setup`.». Sin más comentarios.

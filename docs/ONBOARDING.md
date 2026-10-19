@@ -19,7 +19,9 @@ Dentro de Claude Code (CLI o extensión de VS Code), en cualquier proyecto:
 /lf:setup
 ```
 
-Al abrir una sesión nueva tras instalar el plugin verás el aviso «Arnés LF sin configurar: ejecuta /lf:setup»: es normal. `/lf:setup` hace primero una simulación (`--dry-run`) y resume qué cambiaría; después ejecuta el instalador de verdad (CLAUDE.md global, settings, poda de GSD) con backup en `~/.claude/backups/`. Como escribe en `~/.claude`, que está protegido, se ejecuta fuera del sandbox y Claude te pide permiso. Argumentos opcionales: `/lf:setup --with-rtk` (instala además RTK, desactivado por defecto), `/lf:setup --only=settings,claude-md`, `/lf:setup --rollback`.
+Al abrir una sesión nueva tras instalar el plugin verás el aviso «Arnés LF sin configurar: ejecuta /lf:setup»: es normal. `/lf:setup` hace primero una simulación (`--dry-run`) y resume qué cambiaría; después ejecuta el instalador de verdad (CLAUDE.md global, settings, poda de GSD) con backup en `~/.claude/backups/`. Como escribe en `~/.claude`, que está protegido, se ejecuta fuera del sandbox y Claude te pide permiso. Antes de la simulación te guía con una pregunta de multiselección sobre lo opcional (sin marcar nada, solo se aplica la base: dependencias, CLAUDE.md y settings): **RTK** (filtra la salida de Bash), **taste-skill** (diseño anti-slop; más potente y configurable que `frontend-design`, pero más pesada; el inspector necesita Node 22+ y Chrome/Edge/Chromium) y la **poda de GSD** (solo si GSD está instalado). Argumentos opcionales: `/lf:setup --with-rtk`, `/lf:setup --with-taste` (los activan sin preguntar por ellos), `/lf:setup --only=settings,claude-md` (sin guía), `/lf:setup --rollback`. Para quitar taste-skill: `/plugin uninstall taste-skill@taste-skill`.
+
+RTK se enciende y apaga cuando quieras con `/lf:rtk on|off|status` (reinicia la sesión después). `off` solo retira el hook de `settings.json`, con backup, y deja el binario instalado.
 
 Si faltan `bubblewrap` y `socat`, `sudo` no puede pedirte la contraseña desde Claude: te muestra `sudo apt-get install -y bubblewrap socat` para que lo ejecutes tú con `!` o en un terminal.
 
@@ -93,7 +95,7 @@ Agrega tus transcripts locales (nada sale de tu máquina) y te da coste estimado
 
 - `/lf:setup --rollback` restaura el último backup de `settings.json` y `CLAUDE.md` (en `~/.claude/backups/`).
 - `/plugin uninstall lf@lefebvriano-holder`.
-- RTK (solo si lo instalaste con `--with-rtk`): `rtk init -g --uninstall`. GSD: `/gsd-surface reset`.
+- RTK (solo si lo activaste): `/lf:rtk off` para apagarlo; `rtk init -g --uninstall` para desinstalarlo del todo. GSD: `/gsd-surface reset`.
 - Kill-switch de todos los hooks: `"disableAllHooks": true` en `~/.claude/settings.json`.
 
 ## Problemas frecuentes

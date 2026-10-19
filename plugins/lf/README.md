@@ -8,7 +8,7 @@ Parte instalable como plugin de Claude Code del arnés lefebvriano-holder. Se in
 /lf:setup
 ```
 
-La otra mitad (settings globales, CLAUDE.md, poda de GSD y, opcional con `--with-rtk`, RTK) la aplica `/lf:setup`, que ejecuta `scripts/install.sh` desde la propia caché del plugin (los ficheros viven en `home/` y `scripts/` de este directorio).
+La otra mitad (settings globales, CLAUDE.md, poda de GSD y, opcional con `--with-rtk`, RTK, y con `--with-taste`, la skill de diseño taste-skill) la aplica `/lf:setup`, que ejecuta `scripts/install.sh` desde la propia caché del plugin (los ficheros viven en `home/` y `scripts/` de este directorio).
 
 ## Skills
 
@@ -29,7 +29,8 @@ La §9 «Código mínimo» del CLAUDE.md global y los criterios *lean* de `execu
 
 | Invocación                  | Qué hace                                                                                                                                                                                |
 | --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/lf:setup [args]`          | Aplica en `~/.claude` el CLAUDE.md global, los settings y la poda de GSD desde la caché del plugin (simulación y ejecución real fuera del sandbox). Admite `--with-rtk`, `--only=…`, `--rollback` |
+| `/lf:setup [args]`          | Aplica en `~/.claude` el CLAUDE.md global, los settings y la poda de GSD desde la caché del plugin (simulación y ejecución real fuera del sandbox). Guiado: pregunta qué opcionales activar (RTK, taste-skill, poda de GSD). Admite `--with-rtk`, `--with-taste`, `--only=…`, `--rollback` |
+| `/lf:rtk [on\|off\|status]` | Activa, desactiva o consulta el hook de RTK en `settings.json` (con backup; `off` deja el binario). Requiere reiniciar la sesión |
 | `/lf:opusplan <tarea>`      | Ciclo Opus planifica → Sonnet ejecuta, sin cambiar de modelo a mano. Paga una invalidación de caché; para una L de verdad, mejor sesión Opus → `/lf:handoff` → `/clear` → sesión Sonnet |
 | `/lf:ultrathink <pregunta>` | Razona a fondo en **un solo turno**, sin subir el modelo ni el esfuerzo de la sesión                                                                                                    |
 | `/lf:ultracode <tarea>`     | Sesión completa a xhigh y flujo multiagente. No por defecto                                                                                                                             |

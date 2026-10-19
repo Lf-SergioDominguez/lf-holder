@@ -4,6 +4,17 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+### Cambiado
+
+- La poda de GSD en `/lf:setup` ya no se aplica sola: es una opción de la guía (con `install.sh` directo sigue siendo un paso por defecto).
+
+### Añadido
+
+- Paso opcional `taste` en `install.sh` (`--with-taste`, `--only=taste`) y pregunta en `/lf:setup`: habilita el plugin [taste-skill](https://github.com/Leonxlnx/taste-skill) (MIT) para diseño anti-slop mediante `home/settings.taste.json` (marketplace + `enabledPlugins`). Solo el plugin principal, no `taste-skill-classics`. Desactivado por defecto: es más pesada que `frontend-design`.
+- `/lf:setup` guiado: una pregunta de multiselección con lo opcional (RTK, taste-skill, poda de GSD si está instalado). Sin marcar nada solo se aplica la base. Se construye un `--only=` explícito con las respuestas.
+- Comando `/lf:rtk on|off|status` y `scripts/rtk.sh`: activa o retira el hook `rtk hook claude` de `settings.json` con backup; `off` deja el binario y es reversible con `on`.
+- `frontend-astro-vue-react` remite a taste-skill, si está habilitada, para diseño anti-slop.
+
 ## [0.6.1] — 2026-10-15
 
 ### Corregido
