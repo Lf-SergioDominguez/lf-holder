@@ -4,6 +4,8 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+## [0.7.0] — 2026-10-20
+
 ### Cambiado
 
 - La poda de GSD en `/lf:setup` ya no se aplica sola: es una opción de la guía (con `install.sh` directo sigue siendo un paso por defecto).
