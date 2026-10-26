@@ -218,7 +218,7 @@ plugins/lf/                       el plugin
   commands/                       setup · opusplan · ultrathink · ultracode · handoff
   skills/                         triage · s · m · l · caveman · prompting · symfony · wordpress ·
                                   frontend-astro-vue-react · mysql-doctrine · seo-audit · 6 adaptadas (MIT)
-  agents/                         verbose-runner (haiku) · reviewer (sonnet) · planner (opus) · executor (sonnet)
+  agents/                         verbose-runner (haiku) · reviewer (haiku) · planner (opus) · executor (sonnet)
   hooks/                          filter-output.sh · guard-read.sh · log-permission.sh · check-drift.sh
   output-styles/                  caveman (opt-in, se elige en /config)
   home/                           CLAUDE.md global y fragmento de settings que aplica install.sh

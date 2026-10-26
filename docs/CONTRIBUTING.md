@@ -35,7 +35,7 @@ Cada cosa que añadimos al arnés tiene un coste en tokens **en todas las sesion
 
 ## Añadir un agente
 
-Solo si aísla trabajo ruidoso o necesita otro modelo. Frontmatter mínimo: `name`, `description` (≤200 caracteres), `model` (haiku para ejecutar/leer logs, sonnet para revisar), `tools` restringidas, `maxTurns`, `omitClaudeMd: true`. Plantilla en `docs/templates/agent-template.md`.
+Solo si aísla trabajo ruidoso o necesita otro modelo. Frontmatter mínimo: `name`, `description` (≤200 caracteres), `model` (haiku para ejecutar, leer logs y revisar; sonnet para implementar), `tools` restringidas, `maxTurns`, `omitClaudeMd: true`. Plantilla en `docs/templates/agent-template.md`.
 
 ## Añadir un hook
 

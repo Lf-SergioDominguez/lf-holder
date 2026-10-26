@@ -4,6 +4,21 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+## [0.8.0] — 2026-10-26
+
+### Cambiado
+
+- Reajuste a Claude Haiku 5.5: `CLAUDE_CODE_SUBAGENT_MODEL` pasa a `claude-haiku-5-5` (0,10 $ / 0,50 $ por MTok con prompts de hasta 100k tokens, 10 veces menos que Haiku 4.5). Se actualiza en `~/.claude/settings.json` con `/lf:setup`.
+- `lf:reviewer` pasa de Sonnet a Haiku, con `effort: high` (antes `medium`). Riesgo asumido: revisiones menos finas; se vigila. `lf:verbose-runner` sigue en Haiku con `effort: low`.
+- `docs/MODELOS.md` vuelve a ser la política de Claude Code (Haiku 5.5, umbral de 100k tokens, +30 % de tokens del tokenizador de los modelos 4.7 y posteriores). La política de OpenCode pasa a `opencode-lf/MODELOS.md`.
+- `scripts/measure.sh` conoce Haiku 5.5 con dos tramos de precio: por encima de 100k tokens de prompt (input + lectura + escritura de caché) toda la petición paga el tramo largo.
+
+### Corregido
+
+- `scripts/measure.sh` no reconocía los ID con sufijo de fecha (`claude-haiku-4-5-20251001`) y los cobraba al precio `default`, el de Opus: el coste de Haiku salía inflado unas 4 veces. Ahora se normaliza el sufijo `-AAAAMMDD`. Las métricas anteriores del README se calcularon con este fallo.
+- `scripts/measure.sh`: la lectura de caché de `claude-sonnet-5-5` figuraba a 0,20 $ por MTok y vale 0,10 $.
+- `docs/MODELOS.md` había quedado sobrescrito con la política de OpenCode, y el `CLAUDE.md` global remite a él para la de Claude Code. Se restaura y se corrige una frase corrupta en «La trampa de la caché».
+
 ## [0.7.0] — 2026-10-20
 
 ### Cambiado

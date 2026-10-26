@@ -20,7 +20,7 @@ Solo tres roles, y todos resueltos a **modelos gratuitos** del catálogo de Open
 - **Planificar con el modelo de planificación en modo Plan; ejecutar siempre con el estándar.**
 - El modelo de planificación en una tarea M solo si el contrato de un minuto no la resuelve: lo pido, lo uso para el plan, ejecuto con el estándar.
 - Atajos: `/opusplan` (planifica y ejecuta en una invocación), `/ultrathink` (un único turno con más razonamiento, sin tocar el modelo de la sesión), `/ultracode` (toda la sesión a xhigh y flujos multiagente; no por defecto).
-- Cambiar de modelo a mitad de sesión rompe la caché de prompts: para planificar y ejecutar, lo barato es sesión de planificación → `/handoff` → `/new` → sesión estándar. Detalle en `docs/MODELOS.md`.
+- Cambiar de modelo a mitad de sesión rompe la caché de prompts: para planificar y ejecutar, lo barato es sesión de planificación → `/handoff` → `/new` → sesión estándar. Detalle en `opencode-lf/MODELOS.md`.
 - La config lleva alias (`opencode/{estandar,planificacion,ligero}:latest`), nunca identificadores: `plugins/modelo.ts` los resuelve al arrancar al gratuito más reciente de esa familia. Si añades un subagente, ponle `model:` explícito.
 
 ## 1. Triaje obligatorio (una línea, sin preguntar)
@@ -118,7 +118,7 @@ Commit y push los decide siempre el usuario: no los hago por iniciativa propia, 
 
 | Qué buscas | Dónde |
 | --- | --- |
-| Modelos, esfuerzo, atajos, caché | `docs/MODELOS.md` |
+| Modelos, esfuerzo, atajos, caché | `opencode-lf/MODELOS.md` |
 | Cómo escribir buenas peticiones | skill `prompting` y `docs/PROMPTING.md` |
 | Errores frecuentes y checklist diaria | `docs/ERRORES-COMUNES.md` |
 | Plantilla de handoff y de to-do | `docs/templates/handoff.md`, `docs/templates/todo.md` |

@@ -106,3 +106,14 @@ Decisión: de [ponytail](https://github.com/dietrichgebert/ponytail) (MIT) se ad
 Motivo: la mayoría del equipo no invoca skills, así que lo útil tiene que ir en lo que se carga siempre. Los hooks de ponytail inyectan ~700 palabras en cada `SessionStart`, en cada subagente (`SubagentStart`) y vigilan cada prompt; nuestra §9 son ~230 palabras. Su benchmark (39 tareas FastAPI + React, Opus 5.5) compara contra Claude Code **sin CLAUDE.md**, así que su −26 % de coste no es trasladable; el «66 %» es la tasa de bugs plantados que detectan los tests del agente, no menos bugs (correctitud 95,6 % → 96,7 %). La regla «sin abstracciones» choca con DTO + Validator, por eso §9 nombra la excepción. `/ponytail-audit` choca con «no mejoro fuera del alcance». Graphify: el equipo no lo usaría; su hook se mete en Grep/Glob/Read como hacía RTK; el ahorro de tokens que anuncia (80 %) es de Graphify Cloud, sin medición para la CLI local; el grafo AST no capta el wiring de Symfony ni los hooks de WordPress, y la capa semántica envía documentación al primer proveedor con clave configurada.
 Medición: `measure.sh --since 2026-10-16` el 2026-10-30 contra las dos semanas previas. No mide líneas de código, solo tokens y coste.
 Alternativa descartada: instalar ponytail como plugin (coste fijo en cada sesión y subagente, solapado con §10) y Graphify en modo `--code-only` sin hook (útil solo para quien ya domina el arnés).
+
+## 2026-10-26 — Haiku 5.5
+
+Decisión:
+1. **Subagentes en `claude-haiku-5-5`**: `CLAUDE_CODE_SUBAGENT_MODEL` pasa de `claude-haiku-4-5` a `claude-haiku-5-5`.
+2. **`lf:reviewer` pasa a Haiku con `effort: high`** (antes Sonnet con `medium`). `lf:verbose-runner` mantiene Haiku con `effort: low`.
+3. **Umbral de 100k tokens**: el precio de Haiku 5.5 (0,10 $ / 0,50 $ por MTok) vale con prompts de hasta 100k tokens por petición, contando input más lecturas y escrituras de caché. Por encima, toda la petición paga 0,50 $ / 2,50 $. Los subagentes suelen quedarse por debajo; el reviewer, con hasta 15 turnos, puede cruzarlo: se vigila con `measure.sh`. `measure.sh` aplica el tramo por petición.
+4. **Tokenizador**: los modelos 4.7 y posteriores generan ≈ +30 % de tokens con el mismo texto. Al comparar métricas anteriores con las nuevas, parte de la diferencia es el tokenizador.
+Motivo: Haiku 5.5 sale 10 veces más barato que Haiku 4.5 y 20 veces más barato que Sonnet 5.5, y está pensado para tareas de subagentes. Con `effort: high`, pensar más en la revisión cuesta poco y compensa el salto de Sonnet a Haiku. Además, `measure.sh` cobraba los ID con sufijo de fecha al precio `default` (el de Opus) y la lectura de caché de Sonnet 5.5 a 0,20 $ en vez de 0,10 $: se corrigen las dos cosas.
+Alternativa descartada: dejar `lf:reviewer` en Sonnet, porque cuesta 20 veces más por la misma revisión.
+Riesgo: revisiones menos finas que con Sonnet. Se vigila; si empeoran, se reevalúa el reviewer antes que el resto de subagentes.

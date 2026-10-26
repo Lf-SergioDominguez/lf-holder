@@ -10,7 +10,9 @@
 #   --since  fecha mínima (por defecto: 30 días atrás)
 #   --out    directorio de salida (por defecto: metrics/<fecha-de-hoy>)
 #
-# Precios (USD por millón de tokens) — ajustar en PRICES si cambian.
+# Precios (USD por millón de tokens) — ajustar en PRICES si cambian. Los ID con sufijo de fecha
+# (claude-haiku-4-5-20251001) se normalizan. Haiku 5.5 tiene dos tramos: por encima de 100k tokens
+# de prompt (input + cache_read + cache_write) la petición entera paga el tramo `@long`.
 set -euo pipefail
 
 SINCE=$(date -d '30 days ago' +%F 2>/dev/null || date -v-30d +%F)
@@ -19,7 +21,7 @@ while [ $# -gt 0 ]; do
   case "$1" in
     --since) SINCE="$2"; shift 2 ;;
     --out) OUT="$2"; shift 2 ;;
-    -h|--help) sed -n '2,14p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
     *) echo "argumento desconocido: $1" >&2; exit 1 ;;
   esac
 done
@@ -33,9 +35,11 @@ command -v jq >/dev/null || { echo "jq es necesario" >&2; exit 1; }
 
 # input, output, cache_write, cache_read por MTok
 PRICES='{
-  "claude-sonnet-5-5":        {"in":2,  "out":10,   "cw":2.5,   "cr":0.20},
+  "claude-sonnet-5-5":        {"in":2,  "out":10,   "cw":2.5,   "cr":0.10},
   "claude-opus-5-5":          {"in":4,  "out":20,   "cw":5,     "cr":0.20},
   "claude-fable-5-1":         {"in":10, "out":50,   "cw":12.5,  "cr":0.25},
+  "claude-haiku-5-5":         {"in":0.10, "out":0.50, "cw":0.125, "cr":0.01},
+  "claude-haiku-5-5@long":    {"in":0.50, "out":2.50, "cw":0.625, "cr":0.05},
   "claude-haiku-4-5":         {"in":1,  "out":5,    "cw":1.25,  "cr":0.10},
   "claude-sonnet-5":          {"in":2,  "out":10,   "cw":2.5,   "cr":0.20},
   "claude-opus-5":            {"in":5,  "out":25,   "cw":6.25,  "cr":0.50},
@@ -56,7 +60,7 @@ for f in "${FILES[@]}"; do
   jq -c --arg proj "$proj" --argjson sub "$sub" --arg since "$SINCE" '
     select(.type=="assistant" and .message.usage and (.timestamp // "") >= $since and ((.message.model // "") | startswith("<") | not))
     | {proj:$proj, sub:$sub, sid:.sessionId, rid:(.requestId // .uuid), day:(.timestamp[0:10]),
-       model:(.message.model // "unknown"),
+       model:((.message.model // "unknown") | sub("-[0-9]{8}$"; "")),
        i:(.message.usage.input_tokens//0), o:(.message.usage.output_tokens//0),
        cr:(.message.usage.cache_read_input_tokens//0), cw:(.message.usage.cache_creation_input_tokens//0)}' \
     "$f" 2>/dev/null >> "$TMP" || true
@@ -64,7 +68,8 @@ done
 
 jq -s --argjson P "$PRICES" '
   def price(m): ($P[m] // $P["default"]);
-  def cost: (.i*price(.model).in + .o*price(.model).out + .cw*price(.model).cw + .cr*price(.model).cr) / 1e6;
+  def cost: (if .model == "claude-haiku-5-5" and (.i+.cr+.cw) > 100000 then "claude-haiku-5-5@long" else .model end) as $k
+    | (.i*price($k).in + .o*price($k).out + .cw*price($k).cw + .cr*price($k).cr) / 1e6;
   # dedupe: un requestId puede aparecer en varias líneas (bloques del mismo mensaje)
   (group_by(.sid + "|" + .rid) | map(.[-1])) as $rows
   | {

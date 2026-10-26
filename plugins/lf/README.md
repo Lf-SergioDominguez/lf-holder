@@ -39,7 +39,7 @@ La §9 «Código mínimo» del CLAUDE.md global y los criterios *lean* de `execu
 ## Agentes
 
 - `lf:verbose-runner` (haiku): ejecuta tests/builds/consola y devuelve solo fallos y resumen.
-- `lf:reviewer` (sonnet): revisión final de solo lectura del diff, ≤10 hallazgos priorizados.
+- `lf:reviewer` (haiku): revisión final de solo lectura del diff, ≤10 hallazgos priorizados.
 - `lf:planner` (opus): plan de ejecución por capas, hitos y verificaciones. No escribe código.
 - `lf:executor` (sonnet): ejecuta **un hito** de un plan ya cerrado, verifica cada paso y revisa con `lf:reviewer`.
 

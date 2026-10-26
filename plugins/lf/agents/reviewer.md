@@ -1,8 +1,8 @@
 ---
 name: reviewer
 description: Revisión final de solo lectura del diff de trabajo — bugs, seguridad, contratos rotos, N+1, tests que faltan. Devuelve hallazgos priorizados, máximo 10.
-model: sonnet
-effort: medium
+model: haiku
+effort: high
 tools: Read, Grep, Glob, Bash(git diff*), Bash(git status*), Bash(git log*)
 maxTurns: 15
 omitClaudeMd: true

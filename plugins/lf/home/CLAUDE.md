@@ -14,7 +14,7 @@ Solo **Sonnet, Opus y Haiku**. Fable está prohibido en cualquier fase, incluida
 | --- | --- | --- |
 | Typos, renombrados, config | Sonnet | low |
 | Desarrollo diario: features, tests, bugs | Sonnet | high (por defecto) |
-| Subagentes: búsquedas, tests, logs, ruido | Haiku | low/medium |
+| Subagentes: búsquedas, tests, logs, revisión, ruido | Haiku | low/medium (revisión high) |
 | Planificación y arquitectura (tarea L) | Opus | high / xhigh |
 | Bug que se resiste, refactor multi-fichero | Opus | xhigh, solo tras aprobación del usuario |
 
