@@ -1,4 +1,4 @@
-<!-- lf-harness 0.5.3 -->
+<!-- lf-harness 0.9.0 -->
 # Arnés LF — reglas globales
 
 Equipo web Lefebvre: PHP/Symfony, WordPress, Node, Astro, React, Vue, MySQL. La ruta y la forma de ejecutar cada proyecto las indica su propio `CLAUDE.md`.
@@ -50,7 +50,7 @@ Antes de tocar nada clasifico la tarea y lo digo: `Triaje: S|M|L — <motivo en 
 
 ## 4. Flujo L — arquitectura primero, GSD después
 
-Invoco la skill `lf:l`: entrevista única de ≤5 preguntas, contrato de arquitectura en `.planning/ARCHITECTURE.md`, un solo OK, y ejecución por hitos delegada en GSD (`gsd-plan-phase` → `gsd-execute-phase`). Checkpoints solo al cerrar cada hito. Planificar con `/model claude-opus-5-5`, ejecutar con Sonnet.
+Invoco la skill `lf:l`: entrevista única de ≤5 preguntas, contrato de arquitectura en `.planning/ARCHITECTURE.md`, un solo OK, y ejecución por hitos delegada en GSD. Checkpoints solo al cerrar cada hito. Opus solo para `ARCHITECTURE.md`; `gsd-plan-phase` y `gsd-execute-phase` en Sonnet y **una orden GSD por sesión** con `/clear` entre medias (lo impone el hook `gsd-one-per-session`; config barata con `gsd-lean.sh`). Nunca encadeno órdenes GSD en el mismo contexto.
 
 ## 5. Contexto: no acumular, reiniciar
 

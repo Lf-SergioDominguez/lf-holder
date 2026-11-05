@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # check-drift.sh — hook SessionStart del plugin lf.
-# Silencioso salvo en tres casos (una línea cada uno):
+# Silencioso salvo en cuatro casos (una línea cada uno):
 #   1. ~/.claude/CLAUDE.md no lleva la marca `<!-- lf-harness X.Y.Z -->` en la línea 1 → sin configurar.
 #   2. La marca no coincide con la versión del plugin → actualizado, falta /lf:setup.
 #   3. GSD ha re-registrado hooks gsd-* distintos de write-guard en settings.json.
+#   4. El proyecto tiene .planning/config.json de GSD en modo caro (auto_advance, plan-checker
+#      o perfil distinto de budget).
 set -uo pipefail
 dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 settings="$dir/settings.json"
@@ -29,5 +31,10 @@ if [ -f "$settings" ]; then
   if [ "${n:-0}" -gt 0 ]; then
     echo "lf: GSD ha re-registrado $n hook(s) en settings.json; ejecuta /lf:setup --only=gsd para volver a podarlos."
   fi
+fi
+
+cfg=".planning/config.json"
+if [ -f "$cfg" ] && jq -e '.workflow.auto_advance == true or .workflow.plan_check != false or (.model_profile // "balanced") != "budget"' "$cfg" >/dev/null 2>&1; then
+  echo "lf: $cfg de GSD en modo caro (auto_advance, plan-checker o planner en Opus); ajústalo con: bash \"$root/scripts/gsd-lean.sh\""
 fi
 exit 0

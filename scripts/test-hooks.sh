@@ -159,5 +159,51 @@ for want in 1 0; do
   if [ "$got" -eq "$want" ]; then ok=$((ok+1)); echo "  ok   build $c -> $got"; else fail=$((fail+1)); echo "  FAIL build $c -> $got (esperado $want)"; fi
 done
 
+echo; echo "gsd-one-per-session.sh:"
+GHOOK="$ROOT/plugins/lf/hooks/gsd-one-per-session.sh"
+gtmp=$(mktemp -d)
+gsd() {  # gsd <esperado block|deny|pass> <evento> <sesión> <orden o skill>
+  local expect="$1" ev="$2" sid="$3" what="$4" in got out
+  if [ "$ev" = "UserPromptSubmit" ]; then in=$(jq -cn --arg s "$sid" --arg p "$what" '{hook_event_name:"UserPromptSubmit",session_id:$s,prompt:$p}')
+  else in=$(jq -cn --arg s "$sid" --arg k "$what" '{hook_event_name:"PreToolUse",session_id:$s,tool_name:"Skill",tool_input:{skill:$k}}'); fi
+  out=$(printf '%s' "$in" | TMPDIR="$gtmp" bash "$GHOOK" 2>/dev/null)
+  got=$(printf '%s' "$out" | jq -r 'if .decision == "block" then "block" elif .hookSpecificOutput.permissionDecision == "deny" then "deny" else "pass" end' 2>/dev/null); [ -n "$got" ] || got=pass
+  if [ "$got" = "$expect" ]; then ok=$((ok+1)); printf '  ok   %-5s %s %s\n' "$expect" "$sid" "$what"
+  else fail=$((fail+1)); printf '  FAIL %-5s (got %s) %s %s\n' "$expect" "$got" "$sid" "$what"; fi
+}
+gsd pass  UserPromptSubmit s1 "/gsd-plan-phase 3"
+gsd pass  PreToolUse       s1 "gsd-progress"
+gsd deny  PreToolUse       s1 "gsd-execute-phase"
+gsd block UserPromptSubmit s1 "/gsd-execute-phase 3 --wave 1"
+gsd pass  UserPromptSubmit s1 "explícame el plan"
+gsd pass  PreToolUse       s2 "gsd:execute-phase"
+gsd deny  PreToolUse       s2 "gsd-discuss-phase"
+gsd pass  UserPromptSubmit s3 "/gsd-help"
+gsd pass  PreToolUse       s3 "lf:l"
+LF_GSD_ONE_PER_SESSION=0 gsd pass PreToolUse s2 "gsd-plan-phase"
+gsd pass  PreToolUse       s4 "get-shit-done:gsd-plan-phase"
+gsd deny  PreToolUse       s4 "gsd-execute-phase "
+gsd pass  UserPromptSubmit s5 $'\n  /gsd-plan-phase 2'
+gsd block UserPromptSubmit s5 $'\n/gsd-execute-phase 2'
+gsd pass  PreToolUse       "../x" "gsd-plan-phase"
+rm -rf "$gtmp"
+
+echo; echo "gsd-lean.sh y check-drift.sh (config de GSD):"
+LEAN="$ROOT/plugins/lf/scripts/gsd-lean.sh"; DRIFT="$ROOT/plugins/lf/hooks/check-drift.sh"
+ltmp=$(mktemp -d); p="$ltmp/con espacio"; mkdir -p "$p/.planning"
+lcheck() { if [ "$1" = "$2" ]; then ok=$((ok+1)); echo "  ok   $3"; else fail=$((fail+1)); echo "  FAIL $3 (got $1)"; fi; }
+drift() { (cd "$p" && CLAUDE_CONFIG_DIR="$ltmp/none" bash "$DRIFT" | grep -c "modo caro"); }
+echo '{"mode":"yolo","model_profile":"balanced","parallelization":true,"workflow":{"auto_advance":true,"plan_check":true}}' > "$p/.planning/config.json"
+lcheck "$(drift)" 1 "check-drift avisa con config cara"
+bash "$LEAN" "$p" >/dev/null
+lcheck "$(jq -c '[.mode, .model_profile, .parallelization, .workflow.auto_advance, .workflow.plan_check]' "$p/.planning/config.json")" '["yolo","budget",true,false,false]' "gsd-lean impone coste y conserva el resto"
+lcheck "$(bash "$LEAN" "$p" | grep -c 'ya estaba')" 1 "gsd-lean idempotente"
+lcheck "$(drift)" 0 "check-drift calla con config barata"
+lcheck "$(jq '[.. | nulls] | length' "$p/.planning/config.json")" 0 "gsd-lean no escribe null"
+echo '[]' > "$p/.planning/config.json"; q="$ltmp/q"
+bash "$LEAN" "$p" "$q" >/dev/null 2>&1; rc=$?
+lcheck "$rc:$([ -f "$q/.planning/config.json" ] && echo creado)" "1:creado" "gsd-lean: JSON no objeto → exit 1 y sigue con el resto"
+rm -rf "$ltmp"
+
 echo; echo "Resultado: $ok ok, $fail fallos"
 [ "$fail" -eq 0 ]

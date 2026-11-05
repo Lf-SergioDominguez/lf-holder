@@ -4,6 +4,24 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+## [0.9.0] — 2026-11-05
+
+### Cambiado
+
+- GSD en modo barato. Encadenar plan y execute en la misma sesión (`auto_advance`) provocaba varias compactaciones, y `gsd-planner` corría en Opus en un bucle de hasta 3 revisiones con `gsd-plan-checker`: era el grueso del coste de las tareas L.
+- `planning-config.json` se mueve de `project-templates/` a `plugins/lf/templates/`: la caché del plugin no incluía `project-templates/`, así que `lf:l` no encontraba la plantilla en instalaciones reales. Valores nuevos: `model_profile: budget` (planner y executor en Sonnet), `plan_check: false`, `auto_advance: false`, `ui_phase: false`, `post_planning_gaps: false`, `context_guard_mode: auto` (pausa en vez de compactar) y `compact_content: true`.
+- `lf:l` ya no lanza `gsd-plan-phase` ni `gsd-execute-phase`: deja escrita la siguiente orden, que se ejecuta en una sesión nueva en Sonnet. Las fases con más de 4 planes se ejecutan una oleada por sesión (`--wave N`).
+
+### Añadido
+
+- Hook `gsd-one-per-session.sh` (UserPromptSubmit y PreToolUse de Skill): bloquea una segunda orden GSD pesada en la misma sesión y pide `/clear`. Escape: `LF_GSD_ONE_PER_SESSION=0`.
+- `plugins/lf/scripts/gsd-lean.sh [dir…]`: crea `.planning/config.json` o impone en el existente solo las claves de coste, sin tocar `mode`, gates ni granularity, e imprime lo que cambia.
+- `check-drift.sh` avisa al abrir sesión si el `.planning/config.json` del proyecto está en modo caro.
+
+### Corregido
+
+- El aviso «Arnés LF actualizado a X: ejecuta /lf:setup» salía en cada sesión, incluso después de `/lf:setup`. `home/CLAUDE.md` llevaba fija la marca `<!-- lf-harness 0.5.3 -->` y nunca coincidía con la versión del plugin. Ahora `install.sh` escribe la marca con la versión de `plugin.json`.
+
 ## [0.8.0] — 2026-10-26
 
 ### Cambiado

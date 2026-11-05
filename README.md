@@ -105,6 +105,8 @@ Con el arnés completo, el contexto fijo converge en **24–27K** en las tres m�
 
 **Salidas filtradas.** El hook propio `filter-output` envuelve los comandos ruidosos (Symfony console, Astro/Vite, PHPUnit dentro de `docker compose exec`). [RTK](https://github.com/rtk-ai/rtk) es **opcional** y no se instala por defecto (`--with-rtk`): la prueba A/B no encontró diferencia de coste ni de contexto sin él. Lo realmente ruidoso se delega al agente `lf:verbose-runner` (Haiku), que devuelve solo fallos y resumen.
 
+**GSD, una orden por sesión.** El hook `gsd-one-per-session` bloquea una segunda orden GSD pesada (`plan-phase`, `execute-phase`, `discuss-phase`…) en la misma sesión y pide `/clear`: encadenarlas en un mismo contexto era lo que disparaba el coste y las compactaciones. `plugins/lf/scripts/gsd-lean.sh` deja `.planning/config.json` en modo barato (planner y executor en Sonnet, sin plan-checker ni `auto_advance`). Se desactiva con `LF_GSD_ONE_PER_SESSION=0`.
+
 **Guardia de lectura.** El hook `guard-read` deniega, con el motivo y la alternativa (`grep -n` + Read con `offset`/`limit`), leer `vendor/`, `node_modules/`, lockfiles, minificados y ficheros de más de 800 líneas o 300 KB enteros. Es un hook y no una regla `deny` porque el sandbox replica el `deny` a los procesos hijos y rompía `tsc` y `composer`. Se desactiva con `LF_READ_GUARD=0` en tu entorno (umbrales: `LF_READ_MAX_LINES`, `LF_READ_MAX_BYTES`).
 
 **Salida del propio agente.** `/lf:caveman lite|full` (o el output style `caveman`) acorta las respuestas; es opt-in y nunca comprime código, comandos, errores ni avisos de seguridad.
@@ -141,7 +143,7 @@ Reinicia la sesión y comprueba:
 | Comando        | Debes ver                                                                                                       |
 | -------------- | --------------------------------------------------------------------------------------------------------------- |
 | `/context`     | Contexto fijo en torno a 25–30K; skills `lf` no aparecen hasta tocar ficheros de su stack                       |
-| `/hooks`       | `lf` (filter-output, guard-read, log-permission, check-drift), `gsd-write-guard` (+ `rtk hook claude` si usas `--with-rtk`) |
+| `/hooks`       | `lf` (filter-output, guard-read, gsd-one-per-session, log-permission, check-drift), `gsd-write-guard` (+ `rtk hook claude` si usas `--with-rtk`) |
 | `/permissions` | `acceptEdits` con las reglas allow/ask/deny                                                                     |
 | `/sandbox`     | Sin pestaña «Dependencies»; `allowedDomains` y `enableWeakerNestedSandbox` en Config                            |
 
@@ -219,11 +221,11 @@ plugins/lf/                       el plugin
   skills/                         triage · s · m · l · caveman · prompting · symfony · wordpress ·
                                   frontend-astro-vue-react · mysql-doctrine · seo-audit · 6 adaptadas (MIT)
   agents/                         verbose-runner (haiku) · reviewer (haiku) · planner (opus) · executor (sonnet)
-  hooks/                          filter-output.sh · guard-read.sh · log-permission.sh · check-drift.sh
+  hooks/                          filter-output.sh · guard-read.sh · gsd-one-per-session.sh · log-permission.sh · check-drift.sh
   output-styles/                  caveman (opt-in, se elige en /config)
   home/                           CLAUDE.md global y fragmento de settings que aplica install.sh
-  scripts/                        install.sh · merge-settings.sh · prune-gsd-hooks.sh · gsd-surface.cjs
-project-templates/                CLAUDE.md, settings.local.json y config de GSD por proyecto
+  scripts/                        install.sh · merge-settings.sh · prune-gsd-hooks.sh · gsd-surface.cjs · gsd-lean.sh
+project-templates/                CLAUDE.md y settings.local.json por proyecto (la config de GSD está en plugins/lf/templates/)
 scripts/                          install.sh (envoltorio) · measure.sh · test-hooks.sh
 opencode-lf/                      puerto nativo del arnés a OpenCode (AGENTS.md, commands/, agents/, plugins/lf.ts)
 docs/                             ONBOARDING · MODELOS · PROMPTING · ERRORES-COMUNES · CONTRIBUTING ·

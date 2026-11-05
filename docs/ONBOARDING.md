@@ -71,7 +71,7 @@ Todo lo que instala el arnés (settings globales, CLAUDE.md, plugin, hooks, RTK)
 
 ## Por proyecto
 
-Copia `project-templates/CLAUDE.md` al repo del proyecto y rellena **solo** cómo se ejecuta (local vs `docker compose exec`), mapa rápido y zonas delicadas (≤50 líneas). Si necesitas permisos extra, `project-templates/settings.local.json` → `<repo>/.claude/settings.local.json`. Para tareas L con GSD, `project-templates/planning-config.json` → `.planning/config.json` (lo hace `lf:l` solo).
+Copia `project-templates/CLAUDE.md` al repo del proyecto y rellena **solo** cómo se ejecuta (local vs `docker compose exec`), mapa rápido y zonas delicadas (≤50 líneas). Si necesitas permisos extra, `project-templates/settings.local.json` → `<repo>/.claude/settings.local.json`. Para tareas L con GSD, `lf:l` crea o ajusta `.planning/config.json` con `plugins/lf/scripts/gsd-lean.sh` (plantilla en `plugins/lf/templates/planning-config.json`). En un proyecto con GSD ya en marcha, lanza el script tú mismo desde su raíz. Con GSD, una orden por sesión y `/clear` entre medias.
 
 ## Actualizar
 

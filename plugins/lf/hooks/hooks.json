@@ -20,6 +20,16 @@
             "timeout": 3
           }
         ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/gsd-one-per-session.sh\"",
+            "timeout": 3
+          }
+        ]
       }
     ],
     "PermissionRequest": [
@@ -40,6 +50,17 @@
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/check-drift.sh\"",
             "timeout": 5
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/gsd-one-per-session.sh\"",
+            "timeout": 3
           }
         ]
       }

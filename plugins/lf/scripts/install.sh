@@ -139,7 +139,12 @@ fi
 
 # ---------------------------------------------------------------- CLAUDE.md global
 if step claude-md; then
-  src="$ROOT/home/CLAUDE.md"; dst="$CLAUDE_DIR/CLAUDE.md"
+  dst="$CLAUDE_DIR/CLAUDE.md"
+  # La marca de la línea 1 se escribe con la versión de plugin.json: check-drift la compara con
+  # ella, y una marca fija en home/CLAUDE.md se desfasaba y avisaba en cada sesión tras /lf:setup.
+  ver=$(jq -r '.version // empty' "$ROOT/.claude-plugin/plugin.json")
+  src=$(mktemp); trap 'rm -f "$src"' EXIT
+  { echo "<!-- lf-harness $ver -->"; sed '1{/^<!-- lf-harness .* -->$/d}' "$ROOT/home/CLAUDE.md"; } > "$src"
   if [ -f "$dst" ] && ! cmp -s "$src" "$dst"; then
     run cp "$dst" "$BACKUPS/CLAUDE.md.lf-$(date +%Y%m%d-%H%M%S).bak"
     log "CLAUDE.md existente respaldado en $BACKUPS"
