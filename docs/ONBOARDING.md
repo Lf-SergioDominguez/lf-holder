@@ -1,11 +1,11 @@
 # Onboarding — lefebvriano-holder
 
-Arnés de Claude Code del equipo web. Te da: triaje automático de tareas (S/M/L) sin preguntas ni prompts de permiso en tareas pequeñas y medianas, filtrado de salidas ruidosas, skills de nuestro stack y un flujo para tareas grandes que delega en GSD. Objetivo medido: −60 % de tokens por tarea.
+Arnés de Claude Code del equipo web. Te da: triaje automático de tareas (S/M/L) sin preguntas ni prompts de permiso en tareas pequeñas y medianas, recorte de salidas ruidosas, skills de nuestro stack y un flujo para tareas grandes que delega en GSD. Objetivo medido: −60 % de tokens por tarea.
 
 ## Requisitos
 
-- Claude Code ≥ 2.1.257 (`claude --version`), Linux, macOS o **WSL2**. Windows nativo también, pero sin sandbox (`/lf:setup --windows`, `jq` con `winget install jqlang.jq`).
-- `jq` y `node` ≥ 20 (este último solo para podar GSD); `curl` solo si instalas RTK. En Linux/WSL2, `bubblewrap` y `socat` (el instalador te da el comando `sudo` si faltan).
+- Claude Code ≥ 2.1.295 (`claude --version`), Linux, macOS o **WSL2**. Windows nativo también, pero sin sandbox (`/lf:setup --windows`, `jq` con `winget install jqlang.jq`).
+- `jq` y `node` ≥ 22 (los hooks `bash-gate` y `trim-output` y la poda de GSD lo usan). En Linux/WSL2, `bubblewrap` y `socat` (el instalador te da el comando `sudo` si faltan).
 - No hace falta clonar el repo ni tener credenciales de Git: el marketplace es público (`Lf-SergioDominguez/lf-holder`).
 - Opcional: GSD (`~/.claude/gsd-core`) si lo usas; el instalador lo recorta sin desinstalarlo.
 
@@ -19,11 +19,9 @@ Dentro de Claude Code (CLI o extensión de VS Code), en cualquier proyecto:
 /lf:setup
 ```
 
-Al abrir una sesión nueva tras instalar el plugin verás el aviso «Arnés LF sin configurar: ejecuta /lf:setup»: es normal. `/lf:setup` hace primero una simulación (`--dry-run`) y resume qué cambiaría; después ejecuta el instalador de verdad (CLAUDE.md global, settings, poda de GSD) con backup en `~/.claude/backups/`. Como escribe en `~/.claude`, que está protegido, se ejecuta fuera del sandbox y Claude te pide permiso. Antes de la simulación te guía con una pregunta de multiselección sobre lo opcional (sin marcar nada, solo se aplica la base: dependencias, CLAUDE.md y settings): **RTK** (filtra la salida de Bash), **taste-skill** (diseño anti-slop; más potente y configurable que `frontend-design`, pero más pesada; el inspector necesita Node 22+ y Chrome/Edge/Chromium) y la **poda de GSD** (solo si GSD está instalado). Argumentos opcionales: `/lf:setup --with-rtk`, `/lf:setup --with-taste` (los activan sin preguntar por ellos), `/lf:setup --only=settings,claude-md` (sin guía), `/lf:setup --rollback`. Para quitar taste-skill: `/plugin uninstall taste-skill@taste-skill`.
+Al abrir una sesión nueva tras instalar el plugin verás el aviso «Arnés LF sin configurar: ejecuta /lf:setup»: es normal. `/lf:setup` hace primero una simulación (`--dry-run`) y resume qué cambiaría; después ejecuta el instalador de verdad (CLAUDE.md global, settings, poda de GSD) con backup en `~/.claude/backups/`. Como escribe en `~/.claude`, que está protegido, se ejecuta fuera del sandbox y Claude te pide permiso. Antes de la simulación te guía con una pregunta de multiselección sobre lo opcional (sin marcar nada, solo se aplica la base: dependencias, CLAUDE.md y settings): **taste-skill** (diseño anti-slop; más potente y configurable que `frontend-design`, pero más pesada; el inspector necesita Node 22+ y Chrome/Edge/Chromium) y la **poda de GSD** (solo si GSD está instalado). Argumentos opcionales: `/lf:setup --with-taste` (lo activa sin preguntar), `/lf:setup --only=settings,claude-md` (sin guía), `/lf:setup --rollback`. Para quitar taste-skill: `/plugin uninstall taste-skill@taste-skill`.
 
 La base incluye la skill **Modern Web Guidance** de Google (`modern-web-guidance@googlechrome`), con más de 200 guías actualizadas de HTML, CSS, JS de cliente, Core Web Vitals, accesibilidad y seguridad, con datos de Baseline. Claude Code la descarga al abrir sesión y la actualiza solo (`autoUpdate`); las guías salen siempre de `npx modern-web-guidance@latest`. No tienes que invocarla ni aprender sus comandos: el arnés la consulta solo cuando tocas UI o JS de cliente, y al final te indica qué guías ha aplicado. Pide «moderniza este proyecto» o «audita los patrones legacy de `src/`» y lanza su escaneo. Fija el objetivo de navegadores de cada proyecto en la sección «Navegadores» de su `CLAUDE.md`; si no lo fijas, se aplica Baseline Widely available. Requiere Node.js 22 o superior. El arnés desactiva su telemetría hacia Google con `DISABLE_TELEMETRY=1`. Para desactivarla: `/plugin disable modern-web-guidance@googlechrome`.
-
-RTK se enciende y apaga cuando quieras con `/lf:rtk on|off|status` (reinicia la sesión después). `off` solo retira el hook de `settings.json`, con backup, y deja el binario instalado.
 
 Si faltan `bubblewrap` y `socat`, `sudo` no puede pedirte la contraseña desde Claude: te muestra `sudo apt-get install -y bubblewrap socat` para que lo ejecutes tú con `!` o en un terminal.
 
@@ -35,8 +33,8 @@ Reinicia la sesión. Si usas GSD y el instalador no pudo aplicar el perfil solo,
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | `/sandbox`             | Sin pestaña «Dependencies»; modo auto-allow                                                                           |
 | `/permissions`         | `defaultMode: acceptEdits`, reglas allow/ask/deny cargadas                                                            |
-| `/hooks`               | `lf` (filter-output, log-permission, check-drift), `gsd-write-guard` (+ `rtk hook claude` solo con `--with-rtk`)     |
-| `/context`             | CLAUDE.md global visible; listado de skills corto (≈8 GSD + skills `lf` con `paths` no aparecen hasta tocar ficheros) |
+| `/hooks`               | `lf` (bash-gate, trim-output, guard-read, gsd-one-per-session, log-permission, session-start, precompact), `gsd-write-guard` |
+| `/context`             | CLAUDE.md global visible (<3K tokens); listado de skills corto (las skills `lf` con `paths` no aparecen hasta tocar ficheros) |
 | Pide un cambio pequeño | Empieza con `Triaje: S — …` y termina sin haberte preguntado nada                                                     |
 
 ### Si los comandos fallan con `apply-seccomp: write /proc/self/uid_map`
@@ -48,7 +46,7 @@ Es el filtro seccomp de Claude Code en WSL2. El fragmento ya trae `sandbox.enabl
 
 ## Si usas la extensión de VS Code en vez de la CLI
 
-Todo lo que instala el arnés (settings globales, CLAUDE.md, plugin, hooks, RTK) es común a la extensión y a la CLI. Pasos específicos:
+Todo lo que instala el arnés (settings globales, CLAUDE.md, plugin, hooks) es común a la extensión y a la CLI. Pasos específicos:
 
 1. La CLI es opcional: los tres comandos de instalación funcionan escritos en el cuadro de prompt de la extensión. Instálala solo si quieres usar `claude plugin …` o `scripts/install.sh` desde el terminal; la extensión no añade `claude` al PATH.
 2. En Windows, abre VS Code conectado a WSL (*WSL: Connect to WSL*). La extensión debe ejecutarse dentro de WSL para usar el `~/.claude` de WSL y el sandbox de Bash (no soportado en Windows nativo). Comprueba en Extensiones que Claude Code figura en *WSL: \<distro\> - Installed*; si solo está en *Local*, pulsa **Install in WSL** y *Developer: Reload Window*. Si no lo haces, la extensión corre en Windows aunque la ventana esté en WSL, y `/lf:setup` te pregunta si quieres instalarlo en WSL (y te explica cómo) o en Windows nativo, sin sandbox y con `dontAsk`. Windows y WSL **no comparten** `~/.claude`: si usas la extensión en ambos, instala el plugin `lf` y ejecuta `/lf:setup` en cada uno.
@@ -65,8 +63,8 @@ Todo lo que instala el arnés (settings globales, CLAUDE.md, plugin, hooks, RTK)
   - **M** (endpoint nuevo, componente, entidad + migración): escribe un contrato de 15 líneas, sigue solo, revisa con `lf:reviewer` y entrega con sus asunciones. Corriges después.
   - **L** (módulo, feature grande): `lf:l` te hace ≤5 preguntas de una vez, escribe `.planning/ARCHITECTURE.md`, pide un OK y ejecuta por hitos con GSD.
 - Para discutir la clasificación antes: `/lf:triage <tarea>`. Para forzarla: `/lf:s`, `/lf:m`, `/lf:l`.
-- Modelo: `claude-sonnet` (el más nuevo) por defecto; Haiku para todo subagente ruidoso. Para planificar una L: `/model claude-opus` (el más nuevo) y vuelve a Sonnet para ejecutar. **Fable no se usa en ningún flujo.** Detalle: [MODELOS.md](MODELOS.md).
-- Atajos: `/lf:opusplan` (Opus planifica y Sonnet ejecuta), `/lf:ultrathink` (un turno de razonamiento profundo), `/lf:ultracode` (sesión entera a xhigh y multiagente).
+- Modelo: `claude-sonnet` (el más nuevo) por defecto; Haiku para todo subagente ruidoso. Para planificar una L: `/model claude-opus` (el más nuevo) y vuelve a Sonnet para ejecutar. **Fable no se usa en ningún flujo.** Detalle: [MODELOS.md](../plugins/lf/docs/MODELOS.md).
+- Atajos: `/lf:opusplan` (Opus planifica y Sonnet ejecuta), `/lf:ultracode` (sesión entera a xhigh y multiagente); para razonar a fondo en un solo turno escribe `ultrathink` en el prompt.
 - Contexto: **nunca compactes**. Al 75–80 % de contexto, `/lf:handoff` y `/clear`; la compactación automática a 200K (`autoCompactWindow`) es solo la red de seguridad de una sesión que ya se pasó de larga. `/compact` solo como último recurso y con instrucciones de qué conservar.
 - Auditoría SEO/WPO/a11y: `/lf:seo-audit <ficheros o URL>`.
 - Commit y `git push`: solo si se lo pides, y te preguntará (`ask`). PRs y `--amend` los haces tú.
@@ -82,8 +80,9 @@ Copia `project-templates/CLAUDE.md` al repo del proyecto y rellena **solo** cóm
 /lf:setup
 ```
 
-Al iniciar sesión, `check-drift` compara la marca de versión de tu `~/.claude/CLAUDE.md` con la del plugin y te avisa («Arnés LF actualizado a X: ejecuta /lf:setup») si no coinciden.
-Tras actualizar GSD (`/gsd-update`) ejecuta `/lf:setup --only=gsd`: GSD vuelve a registrar sus hooks y el hook `check-drift` te avisará al inicio de sesión.
+Al iniciar sesión, `session-start` compara la marca de versión de tu `~/.claude/CLAUDE.md` con la del plugin y te avisa («Arnés LF actualizado a X: ejecuta /lf:setup») si no coinciden.
+También avisa si hay un `handoff.md` en el proyecto («léelo primero») y si hay ≥5 sesiones (o ≥7 días) sin consolidar: ejecuta `/lf:dream`.
+Tras actualizar GSD (`/gsd-update`) ejecuta `/lf:setup --only=gsd`: GSD vuelve a registrar sus hooks y `session-start` te avisará al inicio de sesión.
 
 ## Medir tu consumo
 
@@ -97,13 +96,13 @@ Agrega tus transcripts locales (nada sale de tu máquina) y te da coste estimado
 
 - `/lf:setup --rollback` restaura el último backup de `settings.json` y `CLAUDE.md` (en `~/.claude/backups/`).
 - `/plugin uninstall lf@lefebvriano-holder`.
-- RTK (solo si lo activaste): `/lf:rtk off` para apagarlo; `rtk init -g --uninstall` para desinstalarlo del todo. GSD: `/gsd-surface reset`.
+- GSD: `/gsd-surface reset`.
 - Kill-switch de todos los hooks: `"disableAllHooks": true` en `~/.claude/settings.json`.
 
 ## Problemas frecuentes
 
-- **Sigue preguntando permisos**: mira `~/.claude/lf-metrics/permissions.tsv` para ver qué comando lo provocó y añádelo a `settings.local.json` del proyecto (o propón el cambio global en un PR).
-- **`rtk` prefija comandos y rompe algo** (solo si instalaste RTK con `--with-rtk`; es opcional): quita la entrada `rtk hook claude` de `hooks.PreToolUse` en `settings.json` y abre issue con el comando.
+- **Sigue preguntando permisos**: mira `~/.claude/lf-metrics/permissions.tsv` para ver qué comando lo provocó y consulta [PERMISOS.md](../plugins/lf/docs/PERMISOS.md); si es legítimo, añádelo a `settings.local.json` del proyecto (o propón el cambio global en un PR). `LF_GATE=shadow` hace que `bash-gate` solo registre sin decidir.
+- **`/hooks` muestra reglas antiguas en `settings.json`**: `/lf:setup --only=settings` las migra.
 - **El sandbox bloquea Docker/MySQL**: ya están en `sandbox.excludedCommands`; si usas otro cliente, añádelo ahí.
 - **Aviso «GSD ha re-registrado N hooks»**: `/lf:setup --only=gsd`.
 - **Aviso «Arnés LF sin configurar» o «actualizado a X»**: `/lf:setup`.

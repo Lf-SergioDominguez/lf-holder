@@ -5,7 +5,7 @@
 # inyectan contexto y empujan al flujo GSD. Fuera de tareas L no aportan nada. write-guard se
 # conserva porque protege ROADMAP/STATE en .planning/ y solo actúa ahí.
 # GSD los vuelve a registrar en cada `gsd update` ("only-if-absent"): este script es idempotente,
-# ejecútalo después de actualizar GSD (el hook lf check-drift avisa al inicio de sesión).
+# ejecútalo después de actualizar GSD (el hook lf session-start avisa al inicio de sesión).
 #
 # Uso: prune-gsd-hooks.sh [--target FILE] [--dry-run] [--keep REGEX]
 set -euo pipefail

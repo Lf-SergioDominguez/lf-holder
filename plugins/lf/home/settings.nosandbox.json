@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(bin/console *)",
+      "Bash(bun install*)",
+      "Bash(bun run *)",
+      "Bash(bun test*)",
+      "Bash(bunx *)",
+      "Bash(composer dump-autoload*)",
+      "Bash(composer install*)",
+      "Bash(composer require *)",
+      "Bash(composer run *)",
+      "Bash(cp *)",
+      "Bash(find *)",
+      "Bash(gh api *)",
+      "Bash(git checkout -b *)",
+      "Bash(git stash*)",
+      "Bash(git switch *)",
+      "Bash(mkdir *)",
+      "Bash(mv *)",
+      "Bash(node *)",
+      "Bash(npm ci)",
+      "Bash(npm install*)",
+      "Bash(npm ls*)",
+      "Bash(npm run *)",
+      "Bash(npm test*)",
+      "Bash(npx *)",
+      "Bash(php -r *)",
+      "Bash(php bin/console *)",
+      "Bash(php vendor/bin/*)",
+      "Bash(pnpm *)",
+      "Bash(symfony console *)",
+      "Bash(touch *)",
+      "Bash(vendor/bin/*)",
+      "Bash(wp *)",
+      "Bash(yarn *)"
+    ]
+  }
+}

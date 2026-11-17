@@ -18,7 +18,7 @@ Qué espera respuesta de quién, o qué está bloqueado y por qué
 
 La primera acción a tomar en la siguiente sesión, sin ambigüedad. `fichero:línea` + qué hacer + cómo se comprueba.
 
-## Solo lo que no se puede reconstruir leyendo código, git log o Jira.
+_Solo lo que no se puede reconstruir leyendo código, git log o Jira._
 
 ---
 

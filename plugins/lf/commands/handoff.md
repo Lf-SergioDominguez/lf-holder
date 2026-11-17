@@ -11,7 +11,7 @@ Escribe el punto de retorno de esta sesión. Es la **primera instrucción que re
 
 - `handoff.md`: el estado de la tarea. **Sobrescribe** el anterior; no lo archives con fecha ni lo acumules.
 - `to-do.md`: solo si hay trabajo que sobrevive a la tarea (pendientes de otros, ideas, seguimientos). Se puede omitir.
-- Ubicación: raíz del repo, junto al `CLAUDE.md` del proyecto. En la raíz de las skills del arnés, `docs/templates/`.
+- Ubicación: raíz del repo, junto al `CLAUDE.md` del proyecto. Plantillas: `${CLAUDE_PLUGIN_ROOT}/templates/handoff.md` y `todo.md` (si la variable no se resuelve, `~/.claude/plugins/**/lf/templates/`).
 
 ## Paso 2 — Recopila, sin leer en exceso
 
@@ -40,8 +40,9 @@ Qué espera respuesta de quién, o qué está bloqueado y por qué
 
 La primera acción a tomar en la siguiente sesión, sin ambigüedad.
 
-## Solo lo que no se puede reconstruir leyendo código, git log o Jira.
 ```
+
+Solo lo que no se puede reconstruir leyendo código, `git log` o Jira.
 
 ## Paso 4 — Reglas (no negociables)
 
@@ -52,7 +53,11 @@ La primera acción a tomar en la siguiente sesión, sin ambigüedad.
 - **Por debajo de una página.** Lo terminado se archiva, no se acumula.
 - **Enfoques descartados también se anotan**, con una línea cada uno: es lo primero que una compactación perdería.
 
-## Paso 5 — Cierre
+## Paso 5 — Lo durable va a memoria
+
+El handoff solo lleva **estado de tarea**. Si en la sesión apareció algo que seguirá valiendo después de cerrarla (una corrección del usuario, una preferencia, una trampa del proyecto), guárdalo como nota en la memoria del proyecto, una por hecho (reglas en `~/.claude/lf/docs/MEMORIA.md`), y quítalo del handoff.
+
+## Paso 6 — Cierre
 
 Muestra el fichero escrito y termina con:
 

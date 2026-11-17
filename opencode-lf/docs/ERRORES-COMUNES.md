@@ -43,7 +43,7 @@ Ejecutar todo para probar un cambio de tres líneas. Es lento y caro, y además 
 ## Dos trampas del ecosistema
 
 - **Agent teams por defecto.** Según estimaciones del equipo salen en torno a **7× más caros** en tokens que una sesión normal; no lo hemos medido en este repo, pero el motivo estructural no depende de la cifra: cada miembro mantiene su propio contexto. Además, casos reales han pasado de horas de ventana de trabajo a 30 minutos. Un subagente normal ya te da la aislación de contexto que necesitas por una fracción del coste.
-- **Plugins y proxies que «reducen tokens»** (RTK entre ellos). Muchos hacen el efecto contrario, porque comprimen lo que no era el cuello de botella y añaden una capa de traducción. **Mide antes de darlo por bueno**, antes y después. Sin medición, es una creencia. Caso real: una semana sin RTK (2–8 oct) dio el mismo coste por petición con Sonnet (variación 0 %) y por eso RTK es opcional desde la v0.3.0.
+- **Plugins y proxies que «reducen tokens»**. Muchos hacen el efecto contrario, porque comprimen lo que no era el cuello de botella y añaden una capa de traducción. **Mide antes de darlo por bueno**, antes y después. Sin medición, es una creencia. Caso real: una semana sin RTK (2–8 oct) dio el mismo coste por petición con Sonnet (variación 0 %) y por eso RTK es opcional desde la v0.3.0.
 
 ## Checklist diaria
 

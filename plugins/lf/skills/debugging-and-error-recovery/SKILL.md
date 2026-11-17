@@ -1,6 +1,6 @@
 ---
 name: debugging-and-error-recovery
-description: Úsala cuando un test falle, un build se rompa o algo deje de funcionar, para depurar de forma sistemática hasta la causa raíz.
+description: Úsala cuando un test falle, un build se rompa o algo deje de funcionar: depura hasta la causa raíz.
 ---
 
 # Debugging and Error Recovery

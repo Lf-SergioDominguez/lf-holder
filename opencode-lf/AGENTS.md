@@ -58,7 +58,7 @@ Invoco la skill `l`: entrevista única de ≤5 preguntas, contrato de arquitectu
 - Al terminar una tarea: `/new` y la siguiente en sesión nueva. Nunca encadeno una tarea no relacionada con otra.
 - Al llegar al **75–80 % de contexto**: `/handoff` para escribir `handoff.md` y, si hace falta, `to-do.md`; después `/new`. Es la primera instrucción que recibe la sesión siguiente.
 - Si compacta a pesar de todo, el plugin `lf.ts` ya inyecta en el resumen: decisiones, enfoques descartados, ficheros modificados y próximo paso. Aun así, `/handoff` + `/new` es más barato que recuperar de un resumen.
-- Reglas de `handoff.md`/`to-do.md`: no duplicar lo recuperable en `git log`, código o el gestor de tareas; una sola fuente de verdad (sobrescribir, nunca acumular con fecha); próximo paso siempre concreto; fechas absolutas; por debajo de una página; lo terminado se archiva. Plantillas en `docs/templates/` del repo del arnés.
+- Reglas de `handoff.md`/`to-do.md`: no duplicar lo recuperable en `git log`, código o el gestor de tareas; una sola fuente de verdad (sobrescribir, nunca acumular con fecha); próximo paso siempre concreto; fechas absolutas; por debajo de una página; lo terminado se archiva. Plantillas en `plugins/lf/templates/` del repo del arnés.
 - Sesión nueva al día, no sesiones reutilizadas durante semanas; no retomar sesiones antiguas tras pausas largas, pierden la caché.
 
 ## 6. Economía de contexto (siempre)
@@ -119,8 +119,8 @@ Commit y push los decide siempre el usuario: no los hago por iniciativa propia, 
 | Qué buscas | Dónde |
 | --- | --- |
 | Modelos, esfuerzo, atajos, caché | `opencode-lf/MODELOS.md` |
-| Cómo escribir buenas peticiones | skill `prompting` y `docs/PROMPTING.md` |
-| Errores frecuentes y checklist diaria | `docs/ERRORES-COMUNES.md` |
-| Plantilla de handoff y de to-do | `docs/templates/handoff.md`, `docs/templates/todo.md` |
+| Cómo escribir buenas peticiones | skill `prompting` y `opencode-lf/docs/PROMPTING.md` |
+| Errores frecuentes y checklist diaria | `opencode-lf/docs/ERRORES-COMUNES.md` |
+| Plantilla de handoff y de to-do | `plugins/lf/templates/handoff.md`, `plugins/lf/templates/todo.md` |
 | Escribir el handoff ahora | `/handoff` |
 | Convenciones de un proyecto concreto | su propio `AGENTS.md` |

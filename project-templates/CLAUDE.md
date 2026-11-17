@@ -40,3 +40,15 @@ Una frase: qué hace este proyecto y para quién. Stack principal (p. ej. Symfon
 1. `php -l` en ficheros PHP tocados / `vue-tsc --noEmit` en frontend.
 2. Test del módulo afectado (comando exacto arriba).
 3. `bin/console lint:twig templates/` si se tocaron plantillas.
+
+## Hecho significa
+
+- Ej.: el test del módulo pasa, `php -l` limpio y el cambio se ha probado a mano en la ruta afectada. Si algo no se ha podido comprobar, se dice.
+
+## Patrones a evitar
+
+- Ej.: lógica de negocio en controladores; consultas dentro de bucles Twig; `EntityManager` fuera de repositorios.
+
+## Estilo de la casa
+
+- Ej.: respuestas cortas, ficheros tocados y cómo probarlo; commits en inglés (Conventional Commits).

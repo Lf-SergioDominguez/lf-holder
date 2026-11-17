@@ -1,6 +1,6 @@
 ---
 name: security-and-hardening
-description: Úsala al manejar entrada de usuario, autenticación, datos sensibles o integraciones externas, para auditar y endurecer contra OWASP Top Ten.
+description: Úsala con entrada de usuario, autenticación, datos sensibles o integraciones externas (OWASP Top Ten).
 ---
 
 # Security and Hardening

@@ -3,126 +3,61 @@
 
 Equipo web Lefebvre: PHP/Symfony, WordPress, Node, Astro, React, Vue, MySQL. La ruta y la forma de ejecutar cada proyecto las indica su propio `CLAUDE.md`.
 Respondo en español. Identificadores, código y mensajes de commit en inglés.
+Esto es un **índice**: el detalle vive en skills y en `~/.claude/lf/docs/`. Las skills de stack (`lf:symfony`, `lf:wordpress`, `lf:frontend-astro-vue-react`, `lf:mysql-doctrine`) se cargan solas al tocar sus ficheros.
 
-Este fichero es un **índice** de la política del arnés, no una enciclopedia. Lo específico vive en skills, plantillas y docs del repo del arnés; aquí solo está lo que aplica a todas las sesiones.
+## Modelos
 
-## 0. Modelos y esfuerzo
+Solo **Sonnet, Opus y Haiku**; Fable prohibido. Opus planifica (L), Sonnet ejecuta, Haiku para subagentes. Esfuerzo `medium`; escalo (`ultrathink`, `/effort`) solo si me atasco. Detalle: `MODELOS.md`.
 
-Solo **Sonnet, Opus y Haiku**. Fable está prohibido en cualquier fase, incluida la planificación.
+## Triaje (una línea, sin preguntar)
 
-| Trabajo | Modelo | Esfuerzo |
-| --- | --- | --- |
-| Typos, renombrados, config | Sonnet | low |
-| Desarrollo diario: features, tests, bugs | Sonnet | high (por defecto) |
-| Subagentes: búsquedas, tests, logs, revisión, ruido | Haiku | low/medium (revisión high) |
-| Planificación y arquitectura (tarea L) | Opus | high / xhigh |
-| Bug que se resiste, refactor multi-fichero | Opus | xhigh, solo tras aprobación del usuario |
+Antes de tocar nada: `Triaje: S|M|L — <motivo en 5 palabras>`.
 
-- **Planificar con Opus en modo Plan; ejecutar siempre con Sonnet.**
-- Opus en una tarea M solo si el contrato de un minuto no la resuelve: lo pido, lo uso para el plan, ejecuto con Sonnet.
-- Atajos: `/lf:opusplan` (Opus planifica y Sonnet ejecuta), `/lf:ultrathink` (un único turno con más razonamiento, sin tocar el modelo de la sesión), `/lf:ultracode` (toda la sesión a xhigh y flujos multiagente; no por defecto).
-- Cambiar de modelo a mitad de sesión rompe la caché de prompts: para planificar y ejecutar, lo barato es sesión Opus → `/clear` → sesión Sonnet. Detalle en `docs/MODELOS.md`.
+- **S**: ≤3 ficheros, una capa, sin cambio de esquema ni de API/props.
+- **M**: 4–12 ficheros, o cruza capas, o cambia un contrato dentro de un módulo.
+- **L**: módulo nuevo, >12 ficheros, varios contratos, arquitectura en juego, o lo pide el usuario.
+  Duda S/M → M. Duda M/L → una sola pregunta. Forzar: `/lf:s`, `/lf:m`, `/lf:l`; discutir: `/lf:triage`.
 
-## 1. Triaje obligatorio (una línea, sin preguntar)
+## Flujos
 
-Antes de tocar nada clasifico la tarea y lo digo: `Triaje: S|M|L — <motivo en 5 palabras>`.
+- **S**: localizo con Grep/Glob, implemento, verifico con el comando más barato (`--filter`, `php -l`, `tsc --noEmit`). Entrego en 3–6 líneas: ficheros, cómo probarlo, `Hecho cuando: <comprobación ejecutable>` y lo no comprobado. Sin preguntas ni commit; si falta un dato inferible, lo asumo y lo digo.
+- **M**: contrato ≤15 líneas (entidades/campos, endpoints o props/emits, migración sí/no, ficheros, `Hecho cuando:`). Decisión con impacto real → `Asumo: X` y sigo. Implemento por capas (dato → servicio → API → vista), verifico cada una con `lf:verbose-runner`, reviso con `lf:reviewer` y entrego con asunciones y lo no comprobado.
+- **L**: skill `lf:l` (entrevista ≤5 preguntas, `.planning/ARCHITECTURE.md` con Opus, un OK, hitos con GSD en Sonnet). **Una orden GSD por sesión**, `/clear` entre medias. No invoco `gsd-*` fuera de L.
 
-- **S**: ≤3 ficheros, una sola capa, sin cambio de esquema ni de API/props. Bug, texto, estilo, refactor local, ajuste de config.
-- **M**: 4–12 ficheros o cruza capas (entidad + migración + controlador + vista/componente); cambia un contrato dentro de un módulo.
-- **L**: módulo nuevo, >12 ficheros, varios contratos, alternativas de arquitectura reales, o el usuario lo pide.
-  Duda S/M → M. Duda M/L → una sola pregunta. `/lf:triage` para discutir la clasificación; `/lf:s`, `/lf:m`, `/lf:l` para forzarla.
+## Cómo pedir permisos sin fricción
 
-## 2. Flujo S — cero interrupciones
+- Un comando por llamada. Sin `cd`, `$(…)`, heredocs ni `VAR=…` delante si no hacen falta (el 51 % de los prompts del log empieza por `cd`).
+- Con `docker`, `mysql`, `gh` y git de red, además sin pipes ni redirecciones: si no, la llamada se queda en el sandbox y falla.
+- `--dry-run` antes de la variante real.
+- No intento `DELETE`/`DROP` ni borrados recursivos: doy el comando al usuario con `! …`. No limpio `$TMPDIR`.
+- Migraciones: genero con `make:migration`, no ejecuto `doctrine:migrations:migrate`. MySQL solo lectura.
 
-1. Localizo con Grep/Glob. Leo solo el rango necesario.
-2. Implemento.
-3. Verifico con el comando más barato que pruebe el cambio (test concreto con `--filter`, `php -l`, `tsc --noEmit`, `vue-tsc`); si la salida puede superar 40 líneas la delego al agente `lf:verbose-runner`.
-4. Entrego: resumen de 3–6 líneas, ficheros tocados, cómo probarlo y una línea con lo que no he comprobado y sus riesgos.
-   Sin preguntas, sin AskUserQuestion, sin commit. Si falta un dato imposible de inferir del código, lo asumo, lo digo en una línea y sigo.
+## Contexto
 
-## 3. Flujo M — contrato de un minuto, luego autónomo
+- **Prohibido compactar por sistema.** Al terminar una tarea, `/clear` y la siguiente en sesión nueva; nunca encadeno tareas no relacionadas.
+- Al **75–80 %** de contexto: `/lf:handoff` (`handoff.md` y, si hace falta, `to-do.md`), `/clear` y sesión nueva; el handoff es la primera instrucción de la siguiente. `/compact` solo como último recurso y con instrucciones (decisiones, enfoques descartados, ficheros).
+- Handoff y to-do: no duplican lo recuperable en `git log`, código o el gestor de tareas; se sobrescriben; próximo paso concreto; fechas absolutas; <1 página.
+- Memoria: nota predictiva («lo que la próxima sesión necesitará»), un hecho por nota, sin documentos de análisis no pedidos.
+- Salidas largas (tests, builds, `bin/console`, logs, `composer`, `npm install`) → `lf:verbose-runner`. Nunca `cat` de ficheros grandes (Read con offset/limit o `grep -n`), `find` sin `-maxdepth`, ni leer `vendor/`, `node_modules/`, `var/`, `dist/`, `.git/` ni logs enteros.
+- Un cambio, una verificación: no relanzo la suite completa tras un cambio acotado.
+- Subagentes solo `lf:verbose-runner`, `lf:reviewer`, `Explore`, `lf:planner`/`lf:executor` (L) y los de GSD en L; agent teams no. Subagente nuevo → `model:` explícito.
+- MCP solo si la tarea lo necesita. Nada de basura en el repo: logs y temporales a `${TMPDIR:-/tmp}`.
+- Web moderna (HTML/CSS/JS de cliente, también Twig y temas WP): antes de un patrón de UI o capacidad de plataforma consulto `npx -y modern-web-guidance@latest search "<consulta>"`. Navegadores: `.mwgrc`; si no, el CLAUDE.md del proyecto; si no, Baseline Widely available.
+- UI, estilos o documentos con marca: leo antes `~/.claude/lf/house-style/INDEX.md` si existe (house style corporativo, tokens `--lf-*`) y lo aplico; manda sobre cualquier skill de diseño genérica. Se cambia con `/lf:house-style <ruta>`.
 
-1. Escribo el contrato en ≤15 líneas: entidades y campos, endpoints o props/emits, migración sí/no, ficheros que tocaré.
-2. Si el contrato es inequívoco continúo sin esperar. Si hay una decisión con impacto real (nombre público, esquema, ruta) la marco como `Asumo: X` y continúo; el usuario corrige después.
-3. Implemento por capas (dato → servicio → controlador/API → vista) verificando cada capa con `lf:verbose-runner`.
-4. Revisión final de solo lectura con el agente `lf:reviewer`.
-5. Entrego resumen, lista de asunciones, cómo probarlo y lo que no he comprobado. Sin commit salvo petición explícita.
+## Código mínimo
 
-## 4. Flujo L — arquitectura primero, GSD después
+1. ¿Hace falta? Lo que nadie pidió no se escribe; lo nombro en una línea.
+2. ¿Ya existe (helper, servicio, componente) o lo da la stdlib, el framework o una dependencia instalada? Lo uso; nunca una dependencia por pocas líneas.
+3. Si no: lo mínimo que funcione, sin wrappers ni abstracciones de una sola implementación. Mínimo no es saltarse capas (Symfony: DTO + Validator + servicio; WP: escapado, nonces, capabilities).
+4. El cambio va entero (llamadores, tests, fixtures). En un bug, busco todos los llamadores y arreglo la causa una vez. Lógica no trivial deja un test pequeño.
+5. Nunca recorto validación en fronteras de confianza, pérdida de datos, seguridad, accesibilidad ni lo pedido. Comentarios solo para el *porqué*.
 
-Invoco la skill `lf:l`: entrevista única de ≤5 preguntas, contrato de arquitectura en `.planning/ARCHITECTURE.md`, un solo OK, y ejecución por hitos delegada en GSD. Checkpoints solo al cerrar cada hito. Opus solo para `ARCHITECTURE.md`; `gsd-plan-phase` y `gsd-execute-phase` en Sonnet y **una orden GSD por sesión** con `/clear` entre medias (lo impone el hook `gsd-one-per-session`; config barata con `gsd-lean.sh`). Nunca encadeno órdenes GSD en el mismo contexto.
+## Git y alcance
 
-## 5. Contexto: no acumular, reiniciar
+Commit y push los decide el usuario: solo si me los pide, y ambos están en `ask`. Conventional Commits en inglés, atómicos. No hago PRs, `--amend` sobre lo publicado, `reset --hard`, `checkout -- .`, `clean`, ni piso main ni borro ramas. En L, GSD comitea por tarea: si se rechaza un commit, sigo sin commitear y lo anoto en el resumen del hito. `planning.commit_docs` a `false`.
+No generalizo una petición ni «mejoro» fuera del alcance: si nombra ficheros o funciones, voy a esos.
 
-- **Prohibido compactar por sistema.** La compactación automática pierde lo que no se sabe pedir (un enfoque que ya falló, una decisión descartada) y cuesta una petición completa.
-- Al terminar una tarea: `/clear` y la siguiente en sesión nueva. Nunca encadeno una tarea no relacionada con otra.
-- Al llegar al **75–80 % de contexto**: `/lf:handoff` para escribir `handoff.md` y, si hace falta, `to-do.md`; después `/clear` y sesión nueva. Es la primera instrucción que recibe la sesión siguiente.
-- `/compact` solo como último recurso y siempre con instrucciones: qué decisiones conservar, qué enfoques descartados, qué ficheros se han modificado.
-- Reglas de `handoff.md`/`to-do.md`: no duplicar lo recuperable en `git log`, código o el gestor de tareas; una sola fuente de verdad (sobrescribir, nunca acumular con fecha); próximo paso siempre concreto; fechas absolutas; por debajo de una página; lo terminado se archiva. Plantillas en `docs/templates/`.
-- Sesión nueva al día, no sesiones reutilizadas durante semanas; no retomar sesiones antiguas tras pausas largas, pierden la caché.
+## Índice
 
-## 6. Economía de contexto (siempre)
-
-- Salidas largas (tests, builds, `bin/console`, logs, `composer`, `npm install`) → `lf:verbose-runner`, que devuelve solo fallos y resumen.
-- Nunca `cat` de ficheros grandes: Read con offset/limit o `grep -n`. Nunca `find` sin `-maxdepth`. Nunca listar ni leer `vendor/`, `node_modules/`, `var/`, `dist/`, `public/build/`, `.git/`.
-- Nunca leer logs completos: `grep` sobre el log y un rango acotado; el log entero se queda en disco.
-- Un cambio, una verificación: no relanzo la suite completa tras cada edición; ejecuto el test del fichero afectado.
-- No uso subagentes salvo `lf:verbose-runner`, `lf:reviewer`, `Explore` (búsquedas amplias), `lf:planner`/`lf:executor` (flujo L) y los de GSD dentro de L.
-- **Subagentes sí; agent teams no por defecto.** Cada miembro de un equipo tiene contexto propio y, según estimaciones, cuesta en torno a 7× una sesión normal (no medido en este repo). Equipos solo para tareas cortas, y se cierran al terminar.
-- El modelo de subagente barato está fijado por `CLAUDE_CODE_SUBAGENT_MODEL` en settings y por `model:` en cada definición; si añado un subagente, le pongo modelo explícito.
-- No invoco skills `gsd-*` fuera del flujo L.
-- Salida verbosa del propio agente → `/lf:caveman lite|full` (opt-in) o output style `caveman`.
-- No dejo basura: nada de logs, capturas ni ficheros desfasados en el repo. Si creo un log para trabajar, va a `${TMPDIR:-/tmp}`.
-
-## 7. MCP
-
-Los MCP se habilitan por sesión y solo si la tarea los necesita. Al empezar, si la petición es de una sola capa (S/M), no hay ningún MCP activo por defecto. Al cerrar la sesión, revisar y desactivar los que no se han usado.
-
-## 8. Stack
-
-- **Symfony**: comandos con `php bin/console` o `docker compose exec <svc> php bin/console` según indique el CLAUDE.md del proyecto. Migraciones: genero con `make:migration` y NO ejecuto `doctrine:migrations:migrate` sin que se pida. Tests: `vendor/bin/phpunit --filter <Clase>`. Servicios autowired, atributos PHP 8, DTO + Validator, nada de lógica en controladores.
-- **WordPress**: `wp` CLI para inspección. Nunca edito core; plugins y temas viven en `wp-content/`. Escapado y nonces siempre.
-- **Frontend (Astro/Vue/React)**: TypeScript. `tsc --noEmit` o `vue-tsc` antes de cualquier build; `npm run build` solo al final. En Astro, islas con `client:*` solo donde hace falta interactividad.
-- **Web moderna (HTML/CSS/JS de cliente, en cualquier stack, incluidos Twig y temas WP)**: antes de implementar o cambiar un patrón de UI o una capacidad de la plataforma (diálogos, popovers, formularios, animaciones, layout, Core Web Vitals, accesibilidad, CSP, passkeys), consulto la skill `modern-web-guidance` (plugin de Google, activo por defecto) con `npx -y modern-web-guidance@latest search "<consulta>"` → `retrieve "<id>"`, sin que el usuario lo pida. No la uso para textos, colores o espaciados sueltos ni para backend o tooling. Objetivo de navegadores: el de `.mwgrc` si existe; si no, el del CLAUDE.md del proyecto; si no hay ninguno, Baseline Widely available. Detalle en `lf:frontend-astro-vue-react`.
-- **MySQL**: solo lecturas (`SELECT`, `SHOW`, `EXPLAIN`, `DESCRIBE`). DDL o DML destructivo, nunca.
-- Detalles por stack en las skills `lf:symfony`, `lf:wordpress`, `lf:frontend-astro-vue-react`, `lf:mysql-doctrine` (se cargan solas al tocar sus ficheros).
-
-## 9. Código mínimo
-
-Perezoso con la solución, nunca con el cambio. Antes de escribir, me quedo con la primera opción que funcione entera:
-
-1. ¿Hace falta? Lo que nadie pidió (opciones, flexibilidad, código «para luego») no se escribe; lo nombro en una línea.
-2. ¿Ya existe en el código (helper, servicio, componente, patrón)? Lo uso como lo usa el código de alrededor.
-3. ¿Lo da la stdlib, el framework o una dependencia ya instalada? Lo uso. Nunca añado una dependencia por pocas líneas.
-4. Si no: lo mínimo que funcione. Borrar gana a añadir; sin wrappers ni abstracciones con una sola implementación.
-
-- Mínimo no es saltarse capas: respeto la estructura del proyecto (Symfony: DTO + Validator y servicio; WP: escapado, nonces y capabilities).
-- El cambio sí va entero: llamadores, tests y fixtures que rompa entran en la tarea. En un bug, antes de editar busco todos los llamadores y arreglo la causa una vez, en el código compartido.
-- Lógica no trivial (rama, bucle, parser, dinero, seguridad) deja un test pequeño; lo trivial, ninguno.
-- Nunca recorto: validación en fronteras de confianza, errores que evitan pérdida de datos, seguridad, accesibilidad, lo que pidió el usuario.
-- A igual tamaño, la opción correcta en los casos límite. Comentarios solo para el *porqué*.
-
-## 10. Errores que no cometo
-
-- No hago commits ni `push` por iniciativa propia, ni PRs, ni `--amend` sobre lo publicado. Commit y push los decide el usuario: solo si me los pide, y el permiso `ask` le pedirá confirmación.
-- No relanzo la suite completa para «asegurarme» tras un cambio acotado.
-- No generalizo una petición: si el usuario nombra ficheros o funciones, voy a esos.
-- No «mejoro» código fuera del alcance de la tarea.
-- No ejecuto migraciones, ni pino a main, ni borro ramas; pregunto.
-- No dejo logs ni ficheros temporales en el repo.
-- No confío en plugins/proxies que prometen reducir tokens (RTK incluido) sin medir antes: muchos hacen el efecto contrario.
-
-## 11. Git
-
-Commit y push los decide siempre el usuario: no los hago por iniciativa propia, solo si me los pide (S/M/L), y ambos están en `ask`, así que se confirman uno a uno. Conventional Commits en inglés, atómicos. No hago PRs, `reset --hard`, `checkout -- .`, `clean` ni `--amend` (deny). En L, GSD comitea por tarea: cada commit pasa por `ask` y el usuario decide; si lo rechaza, continúo sin commitear y lo anoto en el resumen del hito. `planning.commit_docs` va a `false`.
-
-## Índice: dónde está el detalle
-
-| Qué buscas | Dónde |
-| --- | --- |
-| Modelos, esfuerzo, atajos, caché | `docs/MODELOS.md` |
-| Cómo escribir buenas peticiones | skill `lf:prompting` y `docs/PROMPTING.md` |
-| Errores frecuentes y checklist diaria | `docs/ERRORES-COMUNES.md` |
-| Plantilla de handoff y de to-do | `docs/templates/handoff.md`, `docs/templates/todo.md` |
-| Escribir el handoff ahora | `/lf:handoff` |
-| Convenciones de un proyecto concreto | su propio `CLAUDE.md` (plantilla en `project-templates/CLAUDE.md`) |
+`~/.claude/lf/docs/`: `MODELOS.md` (modelos, esfuerzo, caché), `PROMPTING.md` (cómo pedir; skill `lf:prompting`), `ERRORES-COMUNES.md` (checklist), `PERMISOS.md` (qué pasa, pregunta o se bloquea), `MEMORIA.md` (handoff y notas). Proyecto concreto: su `CLAUDE.md`.

@@ -21,7 +21,7 @@
 // `docker compose exec <servicio> …`, invisibles para un filtro que solo
 // mire el primer token del comando.
 //
-// Nunca toca: comandos ya prefijados con `rtk`, pipes, redirecciones,
+// Nunca toca: pipes, redirecciones,
 // heredocs, sustituciones de comando, encadenados (&&, ||, ;), multilínea,
 // ni asignaciones de variables — en esos casos reescribir el string a ciegas
 // es más peligroso que no tocarlo.
@@ -62,14 +62,10 @@ const FILTERS: Filter[] = [
 
 // Construcciones que no se pueden envolver sin riesgo: passthrough.
 const UNSAFE = /[|><;`]|&&|\|\||<<|\$\(|\n/
-// Prefijo de una herramienta externa de compresión: si ya viene aplicado, el
-// filtro no debe tocar el comando.
-const RTK_PREFIXED = /^rtk\s|\srtk\s/
 const VAR_ASSIGNMENT = /^[A-Za-z_][A-Za-z0-9_]*=/
 const DOCKER_EXEC = /^((?:docker\s+compose|docker-compose)\s+exec(?:\s+-[A-Za-z]+(?:\s+[^\s-][^\s]*)?)*\s+[A-Za-z0-9_.-]+\s+)(.+)$/s
 
 function wrapCommand(cmd: string): { command: string; note: string } | null {
-  if (RTK_PREFIXED.test(cmd)) return null
   if (UNSAFE.test(cmd)) return null
   if (VAR_ASSIGNMENT.test(cmd)) return null
 

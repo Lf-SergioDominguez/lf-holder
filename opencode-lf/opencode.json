@@ -87,7 +87,6 @@
       "mv *": "allow",
       "touch *": "allow",
       "diff *": "allow",
-      "rtk *": "allow",
       "git commit *": "ask",
       "composer update*": "ask",
       "rm -r*": "ask",

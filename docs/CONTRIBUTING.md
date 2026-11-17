@@ -11,7 +11,7 @@ Cada cosa que añadimos al arnés tiene un coste en tokens **en todas las sesion
 | Skill normal                               | Su `description` en cada turno                              | Solo si el modelo debe decidir usarla solo             |
 | Agente                                     | Su `description` en cada turno + contexto nuevo al lanzarlo | Solo para aislar salidas ruidosas o revisiones         |
 | Hook                                       | Un proceso por evento; 0 tokens si no imprime nada          | Automatismos deterministas                             |
-| Línea en `plugins/lf/home/CLAUDE.md`       | Siempre, en todos los proyectos                             | Reglas globales imprescindibles (<100 líneas en total) |
+| Línea en `plugins/lf/home/CLAUDE.md`       | Siempre, en todos los proyectos                             | Reglas globales imprescindibles (≤70 líneas en total)  |
 
 ## Añadir una skill
 
@@ -35,11 +35,15 @@ Cada cosa que añadimos al arnés tiene un coste en tokens **en todas las sesion
 
 ## Añadir un agente
 
-Solo si aísla trabajo ruidoso o necesita otro modelo. Frontmatter mínimo: `name`, `description` (≤200 caracteres), `model` (haiku para ejecutar, leer logs y revisar; sonnet para implementar), `tools` restringidas, `maxTurns`, `omitClaudeMd: true`. Plantilla en `docs/templates/agent-template.md`.
+Solo si aísla trabajo ruidoso o necesita otro modelo. Frontmatter mínimo: `name`, `description` (≤120 caracteres, sin bloques `<example>`), `model` (haiku para ejecutar, leer logs y revisar; sonnet para implementar), `effort`, `tools` restringidas, `maxTurns`, `omitClaudeMd: true`. Plantilla en `docs/templates/agent-template.md`.
 
 ## Añadir un hook
 
-En `plugins/lf/hooks/hooks.json`, comando `bash "${CLAUDE_PLUGIN_ROOT}/hooks/<script>.sh"`, `timeout` ≤5 s. El script debe salir 0 sin salida cuando no aplica (cero tokens). Añade casos a `scripts/test-hooks.sh` y ejecútalo.
+En `plugins/lf/hooks/hooks.json`, comando `bash "${CLAUDE_PLUGIN_ROOT}/hooks/<script>.sh"` (o `node …/<script>.mjs`), `timeout` ≤5 s. El script debe salir 0 sin salida cuando no aplica (cero tokens). Si decide permisos, la lógica va en una función pura testeable (ver `hooks/gate/classify.mjs` y `tests/gate.test.mjs`). Añade casos a `scripts/test-hooks.sh` y ejecútalo.
+
+## Decisiones de diseño
+
+Una decisión que cambia el comportamiento del arnés se registra como ADR en `docs/decisions/` (plantilla e índice en su `README.md`).
 
 ## Cambiar settings globales o CLAUDE.md
 

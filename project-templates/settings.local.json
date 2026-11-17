@@ -1,0 +1,21 @@
+{
+  "//": "Plantilla lefebvriano-holder para <proyecto>/.claude/settings.local.json (no se versiona). Añade aquí SOLO lo específico de este proyecto; lo común ya está en ~/.claude/settings.json.",
+  "//host": "Perfil «host»: bloque `sandbox` de abajo. Bórralo si el proyecto usa Docker (`docker *` ya está excluido del sandbox globalmente). Sin Docker, php bin/console, wp y phpunit necesitan la BD local y el sandbox no la alcanza en WSL2; esta exclusión los ejecuta SIN sandbox (ejecutan código del repo): actívala solo en proyectos de confianza. El bash-gate sigue imponiendo ask/deny sobre SQL y comandos destructivos.",
+  "permissions": {
+    "allow": [
+      "Bash(make *)",
+      "Bash(docker compose exec php *)",
+      "Bash(docker compose exec node *)"
+    ],
+    "ask": [],
+    "deny": []
+  },
+  "sandbox": {
+    "excludedCommands": [
+      "php bin/console *",
+      "wp *",
+      "vendor/bin/phpunit*",
+      "php vendor/bin/phpunit*"
+    ]
+  }
+}

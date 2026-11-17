@@ -1,10 +1,14 @@
 ---
 name: frontend-astro-vue-react
-description: Convenciones para Astro, Vue 3 y React con TypeScript — islas, componentes, estado, accesibilidad, verificación barata sin builds completos.
+description: Convenciones Astro, Vue 3 y React con TypeScript: islas, componentes, estado, accesibilidad, verificación.
 paths: "**/*.astro, **/*.vue, **/*.tsx, **/*.jsx, astro.config.*, vite.config.*, **/src/components/**, **/src/pages/**"
 ---
 
 # Frontend (Astro / Vue / React) — guía operativa
+
+## Marca
+
+Antes de maquetar o estilar, lee `~/.claude/lf/house-style/INDEX.md` (si no existe, no hay house style instalado: sigue el del proyecto). Tokens `--lf-*` en lugar de hex sueltos y la checklist del índice antes de entregar. Manda sobre `frontend-design` y `taste-skill`.
 
 ## Verificación barata (en este orden)
 

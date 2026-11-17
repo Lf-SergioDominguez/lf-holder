@@ -1,6 +1,6 @@
 ---
 name: mysql-doctrine
-description: Esquemas, migraciones reversibles, índices y consultas eficientes en MySQL con Doctrine ORM; solo lectura contra bases de datos reales.
+description: Esquemas, migraciones reversibles, índices y consultas en MySQL con Doctrine ORM; solo lectura en BD reales.
 paths: "migrations/**, **/Entity/**, **/Repository/**, **/*.sql, **/doctrine*.yaml"
 ---
 

@@ -1,6 +1,7 @@
 # Settings reales de usuario nunca se versionan
 settings.json
 settings.local.json
+!project-templates/settings.local.json
 .claude/settings.local.json
 *.bak
 .DS_Store

@@ -1,6 +1,6 @@
 ---
 name: api-and-interface-design
-description: Úsala al diseñar endpoints REST/GraphQL, contratos entre módulos o límites entre frontend y backend, para lograr interfaces estables.
+description: Úsala al diseñar endpoints REST/GraphQL, contratos entre módulos o límites frontend/backend.
 ---
 
 # API and Interface Design

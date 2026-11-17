@@ -1,6 +1,6 @@
 ---
 name: code-review-and-quality
-description: Úsala antes de fusionar cualquier cambio, para revisar código propio o ajeno en corrección, legibilidad, arquitectura, seguridad y rendimiento.
+description: Úsala antes de fusionar: revisa corrección, legibilidad, arquitectura, seguridad y rendimiento.
 ---
 
 # Code Review and Quality

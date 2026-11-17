@@ -1,84 +1,48 @@
 #!/usr/bin/env bash
-# test-hooks.sh — pruebas de los hooks filter-output.sh y guard-read.sh (sin ejecutar nada real).
-# filter-output: comando de entrada → se espera "wrap" (updatedInput presente) o "pass" (sin salida).
+# test-hooks.sh — pruebas de los hooks del plugin lf (sin ejecutar nada real).
+# trim-output: salida simulada de un comando → se espera "trim" (updatedToolOutput) o "same" (sin salida).
 # guard-read: ruta de entrada → se espera "deny" o "pass".
+# bash-gate: modos on/shadow/off y ausencia de node; además lanza `node --test tests/` (clasificador).
 set -uo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-HOOK="$ROOT/plugins/lf/hooks/filter-output.sh"
 fail=0; ok=0
 
-check() {
-  local expect="$1" cmd="$2"
-  local out; out=$(jq -cn --arg c "$cmd" '{tool_name:"Bash",tool_input:{command:$c}}' | bash "$HOOK" 2>/dev/null)
-  local got="pass"; [ -n "$out" ] && got="wrap"
-  if [ "$got" = "$expect" ]; then ok=$((ok+1)); printf '  ok   %-4s %s\n' "$expect" "$cmd"
-  else fail=$((fail+1)); printf '  FAIL %-4s (got %s) %s\n     -> %s\n' "$expect" "$got" "$cmd" "$out"; fi
-  if [ "$got" = "wrap" ]; then
-    # el comando envuelto debe ser bash válido y conservar el comando original
-    local new; new=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.command')
-    bash -n <(printf '%s\n' "$new") || { fail=$((fail+1)); echo "     -> sintaxis inválida: $new"; }
-    # con prefijo `cd X && ` el comando va entre llaves: se comprueban el prefijo y el resto por separado
-    local cdp="" rest="$cmd"
-    if [[ "$cmd" =~ ^(cd[[:space:]]+[^[:space:]]+[[:space:]]+\&\&[[:space:]]+)(.+)$ ]]; then cdp="${BASH_REMATCH[1]}"; rest="${BASH_REMATCH[2]}"; fi
-    case "$new" in "$cdp"*) ;; *) fail=$((fail+1)); echo "     -> no conserva el prefijo cd: $new" ;; esac
-    case "$new" in *"$rest"*) ;; *) fail=$((fail+1)); echo "     -> no conserva el comando original: $new" ;; esac
-  fi
+echo "trim-output.mjs:"
+TRIM="$ROOT/plugins/lf/hooks/trim-output.mjs"
+ttmp=$(mktemp -d)
+trim() { # trim <trim|same> <comando> <líneas> <fragmento esperado en la salida|-> [VAR=valor …]
+  local expect="$1" cmd="$2" n="$3" frag="$4"; shift 4
+  local stdout out got="same"
+  stdout=$(seq 1 "$n" | sed 's/^/linea /'; echo "FAILURES!"; echo "Tests: 3, Failures: 1")
+  out=$(jq -cn --arg c "$cmd" --arg o "$stdout" '{session_id:"tt",tool_name:"Bash",tool_input:{command:$c},tool_response:{stdout:$o,stderr:"",interrupted:false,isImage:false}}' \
+        | env TMPDIR="$ttmp" "$@" node "$TRIM" 2>/dev/null)
+  [ -n "$out" ] && got="trim"
+  if [ "$got" = "trim" ] && ! printf '%s' "$out" | jq -e '.hookSpecificOutput.updatedToolOutput.stdout' >/dev/null 2>&1; then got="salida-inválida"; fi
+  if [ "$got" = "$expect" ] && { [ "$frag" = "-" ] || [ "$got" != "trim" ] || printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedToolOutput.stdout' | grep -qF -- "$frag"; }; then
+    ok=$((ok+1)); printf '  ok   %-4s %s\n' "$expect" "$cmd"
+  else fail=$((fail+1)); printf '  FAIL %-4s (got %s) %s\n' "$expect" "$got" "$cmd"; fi
 }
-
-echo "filter-output.sh:"
-check wrap "php bin/console cache:clear"
-check wrap "cd x && php bin/console about"
-check wrap "cd ../app && npm run build"
-check wrap "bin/console debug:router"
-check wrap "docker compose exec php bin/console doctrine:migrations:status"
-check wrap "docker-compose exec -T php vendor/bin/phpunit --filter UserTest"
-check wrap "docker compose exec -u www-data app php bin/console about"
-check wrap "vendor/bin/phpunit tests/Unit"
-check wrap "vendor/bin/phpstan analyse src"
-check wrap "npm run build"
-check wrap "npx astro build"
-check wrap "npx vue-tsc --noEmit"
-check wrap "composer dump-autoload"
-check wrap "npm ci"
-check wrap "wp plugin list"
-check wrap "mysql -u root app -e 'SHOW TABLES'"
-check pass "git status"
-check pass "rtk git status"
-check pass "ls -la"
-check pass "php bin/console cache:clear | tail -n 5"
-check pass "php bin/console cache:clear > /tmp/x.log"
-check pass "cd x && php bin/console a && echo b"
-check pass "cd x; php bin/console about"
-check pass "npm run build &"
-check pass "npm run build # x"
-check pass "cd 'a b' && npm run build"
-check pass "cd \$(x) && npm run build"
-check pass "FOO=bar php bin/console about"
-check pass $'php bin/console about\necho done'
-check pass "cat <<'EOF' > f.txt
-hola
-EOF"
-
-echo "  updatedInput conserva el resto de tool_input:"
-out=$(jq -cn '{tool_name:"Bash",tool_input:{command:"npm run build",timeout:600000,description:"build"}}' | bash "$HOOK" 2>/dev/null)
-if [ "$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput | "\(.timeout)|\(.description)"')" = "600000|build" ] \
-   && [ "$(printf '%s' "$out" | jq -r '.hookSpecificOutput | has("permissionDecision")')" = "false" ]; then
-  ok=$((ok+1)); echo "  ok   timeout y description conservados, sin permissionDecision"
-else fail=$((fail+1)); echo "  FAIL updatedInput: $out"; fi
-
-echo "  log por sesión:"
-sess() { # sess <session_id|-> <fragmento esperado en el comando envuelto>
-  local j out new
-  if [ "$1" = "-" ]; then j='{"tool_input":{"command":"npm run build"}}'
-  else j=$(jq -cn --arg s "$1" '{session_id:$s,tool_input:{command:"npm run build"}}'); fi
-  out=$(printf '%s' "$j" | bash "$HOOK" 2>/dev/null)
-  new=$(printf '%s' "$out" | jq -r '.hookSpecificOutput.updatedInput.command')
-  if [[ "$new" == *"$2"* ]]; then ok=$((ok+1)); printf '  ok   %s\n' "$2"
-  else fail=$((fail+1)); printf '  FAIL esperado "%s" en: %s\n' "$2" "$new"; fi
-}
-sess "abc-123" "lf-out-abc-123.log"
-sess '../x/y' "lf-out-xy.log"
-sess "-" "lf-last-output.log"
+trim trim "vendor/bin/phpunit tests/Unit" 200 "FAILURES!"
+trim trim "docker compose exec php vendor/bin/phpunit --filter UserTest" 200 "Tests: 3"
+trim trim "cd app && vendor/bin/phpstan analyse src" 200 "[lf:"
+trim trim "npx vitest run" 200 "Tests: 3"
+trim trim "npm run build" 200 "[lf:"
+trim trim "npx vue-tsc --noEmit" 200 "[lf:"
+trim trim "npm ci" 200 "[lf:"
+trim trim "mysql -u root app -e 'SELECT * FROM t'" 300 "[lf: 102 líneas omitidas"
+trim trim "wp post list" 300 "[lf:"
+trim same "vendor/bin/phpunit tests/Unit" 10 -
+trim same "mysql -u root app -e 'SELECT 1'" 100 -
+trim same "ls -la" 300 -
+trim same "git log" 300 -
+trim same "vendor/bin/phpunit tests/Unit" 200 - LF_TRIM=0
+# la nota nombra un log que existe y contiene la salida completa
+tout=$(jq -cn --arg o "$(seq 1 200)" '{session_id:"tt",tool_input:{command:"npm ci"},tool_response:{stdout:$o,stderr:"e",interrupted:false,isImage:false}}' | TMPDIR="$ttmp" node "$TRIM")
+tlog=$(printf '%s' "$tout" | jq -r '.hookSpecificOutput.updatedToolOutput.stdout' | grep -oE 'salida completa en [^]]+' | sed 's/salida completa en //')
+if [ -n "$tlog" ] && [ "$(wc -l < "$tlog")" -ge 199 ] && [ "$(printf '%s' "$tout" | jq -r '.hookSpecificOutput.updatedToolOutput.stderr')" = "e" ]; then
+  ok=$((ok+1)); echo "  ok   log completo en \$TMPDIR y stderr conservado"
+else fail=$((fail+1)); echo "  FAIL log completo / stderr ($tlog)"; fi
+rm -rf "$ttmp"
 
 echo; echo "guard-read.sh:"
 GUARD="$ROOT/plugins/lf/hooks/guard-read.sh"
@@ -124,19 +88,28 @@ gcheck pass "fichero de una línea > 300 KB con limit" "$(jq -cn --arg f "$gtmp/
 gcheck pass "fichero de una línea con LF_READ_MAX_BYTES=900000" "$(jq -cn --arg f "$gtmp/oneline.json" '{file_path:$f}')" LF_READ_MAX_BYTES=900000
 GCWD="$gtmp" gcheck deny "ruta relativa resuelta contra el cwd (grande)" '{"file_path":"big.txt"}' X=1
 GCWD="$gtmp" gcheck pass "ruta relativa resuelta contra el cwd (pequeño)" '{"file_path":"small.txt"}' X=1
+gcheck deny "var/log/dev.log" '{"file_path":"/app/var/log/dev.log"}' X=1
+gcheck deny "storage/logs/laravel.log" '{"file_path":"storage/logs/laravel.log"}' X=1
+gcheck deny "debug.log en cualquier carpeta" '{"file_path":"/app/tmp/debug.log"}' X=1
+gcheck deny "volcado dump.sql.gz" '{"file_path":"/app/dump.sql.gz"}' X=1
+gcheck deny ".env.local" '{"file_path":"/app/.env.local"}' X=1
+gcheck deny ".env.prod.local en subcarpeta" '{"file_path":"/app/api/.env.prod.local"}' X=1
+gcheck deny ".cache/x" '{"file_path":".cache/x.json"}' X=1
+gcheck pass ".env (sin local)" '{"file_path":"/app/.env"}' X=1
+gcheck pass "log fuera del cwd (p. ej. \$TMPDIR/lf-out-x.log)" '{"file_path":"/tmp/lf-out-x.log","limit":50}' X=1
 gcheck pass "ruta inexistente" '{"file_path":"/no/existe/x.txt"}' X=1
 rm -rf "$gtmp"
 
-echo; echo "check-drift.sh (sobre settings actual):"
-bash "$ROOT/plugins/lf/hooks/check-drift.sh" | sed 's/^/  /' ; echo "  (vacío = sin deriva)"
+echo; echo "session-start.sh (sobre settings actual):"
+bash "$ROOT/plugins/lf/hooks/session-start.sh" | sed 's/^/  /' ; echo "  (vacío = sin deriva)"
 
-echo; echo "check-drift.sh (marca de versión):"
-DRIFT="$ROOT/plugins/lf/hooks/check-drift.sh"
+echo; echo "session-start.sh (marca de versión):"
+DRIFT="$ROOT/plugins/lf/hooks/session-start.sh"
 ver=$(jq -r .version "$ROOT/plugins/lf/.claude-plugin/plugin.json")
 drift() { # drift <contenido línea 1 de CLAUDE.md|-> <fragmento esperado|"">
   local d out; d=$(mktemp -d)
   [ "$1" != "-" ] && printf '%s\n# x\n' "$1" > "$d/CLAUDE.md"
-  out=$(CLAUDE_CONFIG_DIR="$d" bash "$DRIFT" 2>&1); rm -rf "$d"
+  out=$(cd "$d" && CLAUDE_CONFIG_DIR="$d" bash "$DRIFT" 2>&1); rm -rf "$d"
   if { [ -z "$2" ] && [ -z "$out" ]; } || { [ -n "$2" ] && [[ "$out" == *"$2"* ]] && [ "$(printf '%s\n' "$out" | wc -l)" -eq 1 ]; }; then
     ok=$((ok+1)); printf '  ok   %s\n' "${2:-silencio}"
   else fail=$((fail+1)); printf '  FAIL esperado "%s", salida "%s"\n' "$2" "$out"; fi
@@ -146,18 +119,79 @@ drift "# Arnés sin marca" "sin configurar"
 drift "<!-- lf-harness 0.0.1 -->" "actualizado a $ver"
 drift "<!-- lf-harness $ver -->" ""
 
+echo; echo "session-start.sh (reglas antiguas):"
+sd=$(mktemp -d)
+old() { # old <settings.json> <fragmento esperado|"">
+  local out; echo "$1" > "$sd/settings.json"; printf '<!-- lf-harness %s -->\n' "$ver" > "$sd/CLAUDE.md"
+  out=$(cd "$sd" && CLAUDE_CONFIG_DIR="$sd" PATH="$(dirname "$(command -v jq)"):/usr/bin:/bin" bash "$DRIFT" 2>&1)
+  if { [ -z "$2" ] && [ -z "$out" ]; } || { [ -n "$2" ] && [[ "$out" == *"$2"* ]]; }; then ok=$((ok+1)); printf '  ok   %s\n' "${2:-silencio}"
+  else fail=$((fail+1)); printf '  FAIL esperado "%s", salida "%s"\n' "$2" "$out"; fi
+}
+old '{"permissions":{"allow":["Bash(git status*)"]}}' ""
+old '{"permissions":{"allow":["Bash(wp *)","Bash(rtk *)"]}}' "2 regla(s) antigua(s)"
+old '{"hooks":{"PreToolUse":[{"matcher":"Bash","hooks":[{"type":"command","command":"rtk hook claude"}]}]}}' "1 regla(s) antigua(s)"
+rm -rf "$sd"
+
+echo; echo "session-start.sh (handoff y sesiones sin consolidar) y precompact.sh:"
+mtmp=$(mktemp -d); mp="$mtmp/proj"; mkdir -p "$mp"; mcfg="$mtmp/cfg"; mkdir -p "$mcfg"
+printf '<!-- lf-harness %s -->\n' "$ver" > "$mcfg/CLAUDE.md"
+mpdir="$mcfg/projects/$(cd "$mp" && pwd | sed 's/[^a-zA-Z0-9]/-/g')"; mkdir -p "$mpdir/memory"
+mstart() { (cd "$mp" && CLAUDE_CONFIG_DIR="$mcfg" bash "$DRIFT" 2>&1); }
+mcheck() { # mcheck <fragmento esperado|""> <descripción>
+  local out; out=$(mstart)
+  if { [ -z "$1" ] && [ -z "$out" ]; } || { [ -n "$1" ] && [[ "$out" == *"$1"* ]]; }; then ok=$((ok+1)); echo "  ok   $2"
+  else fail=$((fail+1)); echo "  FAIL $2 (salida: $out)"; fi
+}
+mcheck "" "sin handoff ni sesiones: silencio"
+echo x > "$mp/handoff.md"; mcheck "existe handoff.md" "avisa del handoff"; rm "$mp/handoff.md"
+for i in 1 2 3 4; do echo '{}' > "$mpdir/s$i.jsonl"; done
+mcheck "" "4 sesiones sin estado: silencio"
+echo '{}' > "$mpdir/s5.jsonl"; mcheck "5 sesión(es) sin consolidar" "5 sesiones sin estado: avisa"
+touch -d '2000-01-01' "$mpdir"/s*.jsonl
+echo '{"lastRun":"2000-01-02T00:00:00Z"}' > "$mpdir/memory/.dream-state.json"; touch -d '2000-01-02' "$mpdir/memory/.dream-state.json"
+touch -d '2000-01-03' "$mpdir/s1.jsonl"
+mcheck "1 sesión(es) sin consolidar" "1 sesión y >7 días desde la última: avisa"
+echo '{"lastRun":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"}' > "$mpdir/memory/.dream-state.json"
+mcheck "" "recién consolidado: silencio"
+pc=$(bash "$ROOT/plugins/lf/hooks/precompact.sh")
+if [[ "$pc" == *"alternativas descartadas"* ]] && [[ "$pc" == *"Próximo paso"* ]]; then ok=$((ok+1)); echo "  ok   precompact imprime las instrucciones"
+else fail=$((fail+1)); echo "  FAIL precompact"; fi
+# install.sh: el @import de USER.md apunta al fichero que crea, con ruta por defecto y con CLAUDE_CONFIG_DIR propio
+icheck() { # icheck <descripción> <CLAUDE_CONFIG_DIR> <línea @import esperada>
+  local c="$2"; mkdir -p "$c"; HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$c" bash "$ROOT/plugins/lf/scripts/install.sh" --only=claude-md >/dev/null 2>&1
+  if [ "$(tail -n 1 "$c/CLAUDE.md")" = "$3" ] && [ -f "$c/lf/memory/USER.md" ]; then ok=$((ok+1)); echo "  ok   $1"
+  else fail=$((fail+1)); echo "  FAIL $1 (última línea: $(tail -n 1 "$c/CLAUDE.md" 2>/dev/null))"; fi
+}
+mkdir -p "$mtmp/home"
+icheck "install: @import con ruta por defecto (~/.claude)" "$mtmp/home/.claude" "@~/.claude/lf/memory/USER.md"
+icheck "install: @import respeta CLAUDE_CONFIG_DIR" "$mtmp/otra" "@$mtmp/otra/lf/memory/USER.md"
+hcheck() { if [ "$1" = "$2" ]; then ok=$((ok+1)); echo "  ok   $3"; else fail=$((fail+1)); echo "  FAIL $3 (got '$1', esperado '$2')"; fi; }
+HS="$ROOT/plugins/lf/scripts/house-style.sh"; hc="$mtmp/hs"
+mkdir -p "$mtmp/hsrc"; printf '# Mi estilo\n[c](color.md)\n' > "$mtmp/hsrc/README.md"; echo "azul" > "$mtmp/hsrc/color.md"
+if [ -d "$ROOT/plugins/lf/house-style" ]; then
+  HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$hc" bash "$ROOT/plugins/lf/scripts/install.sh" --only=claude-md >/dev/null 2>&1
+  hcheck "$(grep -c 001978 "$hc/lf/house-style/color.md")" "$(grep -c 001978 "$ROOT/plugins/lf/house-style/color.md")" "install: copia el house style de serie"
+fi
+CLAUDE_CONFIG_DIR="$hc" bash "$HS" "$mtmp/hsrc" >/dev/null
+hcheck "$(cat "$hc/lf/house-style/color.md")|$([ -f "$hc/lf/house-style/.custom" ] && echo custom)|$(grep -c README "$hc/lf/house-style/INDEX.md")" "azul|custom|1" "house-style.sh <carpeta>: copia, marca .custom y crea INDEX.md"
+HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$hc" bash "$ROOT/plugins/lf/scripts/install.sh" --only=claude-md >/dev/null 2>&1
+hcheck "$(cat "$hc/lf/house-style/color.md")" "azul" "install: no pisa un house style .custom"
+CLAUDE_CONFIG_DIR="$hc" bash "$HS" /no/existe >/dev/null 2>&1; hcheck "$?" "1" "house-style.sh: ruta inexistente falla"
+if [ -d "$ROOT/plugins/lf/house-style" ]; then
+  CLAUDE_CONFIG_DIR="$hc" bash "$HS" --reset >/dev/null
+  hcheck "$([ -f "$hc/lf/house-style/.custom" ] && echo custom || echo serie)|$(ls "$hc/lf/house-style" | wc -l)" "serie|$(ls "$ROOT/plugins/lf/house-style" | wc -l)" "house-style.sh --reset: vuelve al de serie"
+fi
+rm -rf "$mtmp"
+
 echo; echo "log-permission.sh:"
 tmp=$(mktemp -d); CLAUDE_CONFIG_DIR="$tmp" bash "$ROOT/plugins/lf/hooks/log-permission.sh" <<<'{"session_id":"t","cwd":"/x","tool_name":"Bash","tool_input":{"command":"git push"}}'
 [ -s "$tmp/lf-metrics/permissions.tsv" ] && { ok=$((ok+1)); echo "  ok   escribe TSV"; } || { fail=$((fail+1)); echo "  FAIL no escribe TSV"; }
+CLAUDE_CONFIG_DIR="$tmp" bash "$ROOT/plugins/lf/hooks/log-permission.sh" <<<'{"session_id":"t","cwd":"/x","tool_name":"Bash","permission_mode":"plan","tool_input":{"command":"ls","dangerouslyDisableSandbox":true}}'
+CLAUDE_CONFIG_DIR="$tmp" bash "$ROOT/plugins/lf/hooks/log-permission.sh" <<<'{"session_id":"t","tool_name":"AskUserQuestion","tool_input":{}}'
+CLAUDE_CONFIG_DIR="$tmp" bash "$ROOT/plugins/lf/hooks/log-permission.sh" <<<'{"session_id":"t","tool_name":"ExitPlanMode","tool_input":{}}'
+lp=$(awk -F'\t' 'NR==1{a=NF} NR==2{b=$6":"$7} END{print NR":"a":"b}' "$tmp/lf-metrics/permissions.tsv")
+if [ "$lp" = "2:7:plan:1" ]; then ok=$((ok+1)); echo "  ok   7 columnas (modo, sandbox) y sin AskUserQuestion/ExitPlanMode"; else fail=$((fail+1)); echo "  FAIL columnas/filtro ($lp)"; fi
 rm -rf "$tmp"
-
-echo; echo "filter-output.sh (exit code de build):"
-for want in 1 0; do
-  c=false; [ "$want" -eq 0 ] && c=true
-  w=$(jq -cn '{tool_input:{command:"npm run build"}}' | bash "$HOOK" | jq -r .hookSpecificOutput.updatedInput.command)
-  bash -c "${w/npm run build/$c}" >/dev/null 2>&1; got=$?
-  if [ "$got" -eq "$want" ]; then ok=$((ok+1)); echo "  ok   build $c -> $got"; else fail=$((fail+1)); echo "  FAIL build $c -> $got (esperado $want)"; fi
-done
 
 echo; echo "gsd-one-per-session.sh:"
 GHOOK="$ROOT/plugins/lf/hooks/gsd-one-per-session.sh"
@@ -188,22 +222,59 @@ gsd block UserPromptSubmit s5 $'\n/gsd-execute-phase 2'
 gsd pass  PreToolUse       "../x" "gsd-plan-phase"
 rm -rf "$gtmp"
 
-echo; echo "gsd-lean.sh y check-drift.sh (config de GSD):"
-LEAN="$ROOT/plugins/lf/scripts/gsd-lean.sh"; DRIFT="$ROOT/plugins/lf/hooks/check-drift.sh"
+echo; echo "gsd-lean.sh y session-start.sh (config de GSD):"
+LEAN="$ROOT/plugins/lf/scripts/gsd-lean.sh"; DRIFT="$ROOT/plugins/lf/hooks/session-start.sh"
 ltmp=$(mktemp -d); p="$ltmp/con espacio"; mkdir -p "$p/.planning"
 lcheck() { if [ "$1" = "$2" ]; then ok=$((ok+1)); echo "  ok   $3"; else fail=$((fail+1)); echo "  FAIL $3 (got $1)"; fi; }
 drift() { (cd "$p" && CLAUDE_CONFIG_DIR="$ltmp/none" bash "$DRIFT" | grep -c "modo caro"); }
 echo '{"mode":"yolo","model_profile":"balanced","parallelization":true,"workflow":{"auto_advance":true,"plan_check":true}}' > "$p/.planning/config.json"
-lcheck "$(drift)" 1 "check-drift avisa con config cara"
+lcheck "$(drift)" 1 "session-start avisa con config cara"
 bash "$LEAN" "$p" >/dev/null
 lcheck "$(jq -c '[.mode, .model_profile, .parallelization, .workflow.auto_advance, .workflow.plan_check]' "$p/.planning/config.json")" '["yolo","budget",true,false,false]' "gsd-lean impone coste y conserva el resto"
 lcheck "$(bash "$LEAN" "$p" | grep -c 'ya estaba')" 1 "gsd-lean idempotente"
-lcheck "$(drift)" 0 "check-drift calla con config barata"
+lcheck "$(drift)" 0 "session-start calla con config barata"
 lcheck "$(jq '[.. | nulls] | length' "$p/.planning/config.json")" 0 "gsd-lean no escribe null"
 echo '[]' > "$p/.planning/config.json"; q="$ltmp/q"
 bash "$LEAN" "$p" "$q" >/dev/null 2>&1; rc=$?
 lcheck "$rc:$([ -f "$q/.planning/config.json" ] && echo creado)" "1:creado" "gsd-lean: JSON no objeto → exit 1 y sigue con el resto"
 rm -rf "$ltmp"
+
+echo; echo "bash-gate.sh (on por defecto, shadow, off):"
+GATE="$ROOT/plugins/lf/hooks/bash-gate.sh"
+gdir=$(mktemp -d)
+gin() { jq -cn --arg c "$1" '{session_id:"gt",cwd:"/work/proj",tool_name:"Bash",tool_input:{command:$c}}'; }
+gcheck() { if [ "$1" = "$2" ]; then ok=$((ok+1)); echo "  ok   $3"; else fail=$((fail+1)); echo "  FAIL $3 (got '$1', esperado '$2')"; fi; }
+if command -v node >/dev/null 2>&1; then
+  gout=$(gin "git status" | LF_GATE=shadow CLAUDE_CONFIG_DIR="$gdir" bash "$GATE"); grc=$?
+  gcheck "$grc:$gout" "0:" "shadow: exit 0 y sin salida"
+  gcheck "$(awk -F'\t' 'END{print NR":"$2":"$3":"$5}' "$gdir/lf-metrics/gate.tsv" 2>/dev/null)" "1:gt:allow:git status" "shadow: una fila ts/sesión/decisión/comando"
+  gin "rm -rf /" | LF_GATE=shadow CLAUDE_CONFIG_DIR="$gdir" bash "$GATE" >/dev/null
+  gcheck "$(awk -F'\t' 'END{print NR":"$3}' "$gdir/lf-metrics/gate.tsv" 2>/dev/null)" "2:deny" "shadow: segunda fila con deny"
+  gin "git status" | LF_GATE=off CLAUDE_CONFIG_DIR="$gdir" bash "$GATE"
+  gcheck "$(wc -l < "$gdir/lf-metrics/gate.tsv" | tr -d ' ')" "2" "off: no registra"
+  for pair in "allow|git status" "ask|git commit -m x" "deny|rm -rf /"; do
+    want="${pair%%|*}"; c="${pair#*|}"
+    got=$(gin "$c" | LF_GATE=on CLAUDE_CONFIG_DIR="$gdir" bash "$GATE" | jq -r '.hookSpecificOutput | select(.hookEventName == "PreToolUse") | .permissionDecision')
+    gcheck "$got" "$want" "on: $want  $c"
+  done
+  gcheck "$(gin "rm -rf /" | CLAUDE_CONFIG_DIR="$gdir" bash "$GATE" | jq -r .hookSpecificOutput.permissionDecision)" "deny" "sin LF_GATE el gate decide (on por defecto)"
+  gcheck "$(gin "cd /work/proj && docker compose ps" | CLAUDE_CONFIG_DIR="$gdir" bash "$GATE" | jq -r '.hookSpecificOutput.updatedInput.command')" "docker compose ps" "allow quita el cd <cwd> && redundante (updatedInput)"
+  gcheck "$(gin "cd /otro && docker compose ps" | CLAUDE_CONFIG_DIR="$gdir" bash "$GATE" | jq -r '.hookSpecificOutput.updatedInput.command // "-"')" "-" "allow no reescribe un cd a otro directorio"
+  gcheck "$(gin "foo-desconocido --x" | LF_GATE=on CLAUDE_CONFIG_DIR="$gdir" bash "$GATE")" "" "on: none no emite nada"
+  gcheck "$(printf 'no json' | LF_GATE=on CLAUDE_CONFIG_DIR="$gdir" bash "$GATE" | jq -r .hookSpecificOutput.permissionDecision)" "ask" "on: entrada ilegible → ask"
+  # sin node (PATH sin node): shadow/off callan; on solo pregunta por patrones peligrosos
+  nonode="$gdir/bin"; mkdir -p "$nonode"; for t in jq grep head tr dirname cat; do ln -sf "$(command -v $t)" "$nonode/$t"; done
+  gcheck "$(gin "git push" | LF_GATE=shadow PATH="$nonode" CLAUDE_CONFIG_DIR="$gdir/none" /bin/bash "$GATE")" "" "sin node, shadow: silencio"
+  gcheck "$(gin "git push" | LF_GATE=on PATH="$nonode" CLAUDE_CONFIG_DIR="$gdir/none" /bin/bash "$GATE" | jq -r .hookSpecificOutput.permissionDecision)" "ask" "sin node, on: push → ask"
+  gcheck "$(gin "ls -la" | LF_GATE=on PATH="$nonode" CLAUDE_CONFIG_DIR="$gdir/none" /bin/bash "$GATE")" "" "sin node, on: ls pasa"
+  echo; echo "node --test tests/:"
+  nt=$(cd "$ROOT" && node --test tests/*.test.mjs 2>&1); nrc=$?
+  if [ "$nrc" -eq 0 ]; then ok=$((ok+1)); echo "  ok   $(printf '%s\n' "$nt" | grep -E '^ℹ (pass|fail) ' | tr '\n' ' ')"
+  else fail=$((fail+1)); echo "  FAIL node --test"; printf '%s\n' "$nt" | head -40; fi
+else
+  echo "  (node no disponible: se omiten las pruebas de bash-gate)"
+fi
+rm -rf "$gdir"
 
 echo; echo "Resultado: $ok ok, $fail fallos"
 [ "$fail" -eq 0 ]

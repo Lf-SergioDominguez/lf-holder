@@ -1,6 +1,6 @@
 ---
 name: seo-audit
-description: Auditoría técnica SEO, WPO (Core Web Vitals) y accesibilidad WCAG de código o URL, con informe priorizado y correcciones concretas.
+description: Auditoría técnica SEO, WPO (Core Web Vitals) y accesibilidad WCAG, con informe priorizado y correcciones.
 disable-model-invocation: true
 argument-hint: "[ficheros, carpeta o URL] [--live URL]"
 context: fork

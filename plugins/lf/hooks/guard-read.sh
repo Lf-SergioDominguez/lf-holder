@@ -5,7 +5,9 @@
 # cachés, lockfiles, minificados y source maps; y ficheros muy grandes leídos enteros.
 # El motivo de la denegación dice qué hacer en su lugar (grep -n + Read acotado).
 # Va como hook y no como `permissions.deny` porque el sandbox replica el deny como denyRead
-# en los procesos hijos y rompía tsc, composer y git (ver docs/DECISIONS.md).
+# en los procesos hijos y rompía tsc, composer, git, `grep var/log/x.log` y la lectura de `.env.local`
+# por la propia app. En `permissions.deny` solo quedan las credenciales (~/.ssh, .credentials.json).
+# Logs, volcados y `.env*.local` dentro del proyecto se deniegan aquí (la ruta lo decide).
 #
 # Reglas de ruta (sobre la ruta relativa al `cwd` de la sesión):
 #   - vendor/, node_modules/, .git/ → en cualquier segmento.
@@ -61,8 +63,14 @@ if [ "$inside" = "1" ]; then
       deny "lectura bloqueada ($rel está en .git). Usa git log, git show o git diff por Bash." ;;
   esac
   case "$rel" in
-    var/cache/*|dist/*|public/build/*|coverage/*)
+    var/cache/*|dist/*|public/build/*|coverage/*|.cache/*)
       deny "lectura bloqueada ($rel es un artefacto generado). Lee el fuente en vez del compilado; si buscas un error, usa grep -n sobre el log o la salida del build." ;;
+    var/log/*|var/logs/*|storage/logs/*|symfony.log|*.log|*.sql.gz|*.sql.xz)
+      deny "lectura bloqueada ($rel es un log o un volcado). No lo leas entero: grep -n '<patrón>' $rel y, si hace falta contexto, Bash con tail -n 40." ;;
+  esac
+  case "${rel##*/}" in
+    .env.local|.env.*.local)
+      deny "lectura bloqueada ($rel guarda secretos locales). Si necesitas saber qué variables existen, lee .env o .env.dist; no el .env.local." ;;
   esac
 fi
 

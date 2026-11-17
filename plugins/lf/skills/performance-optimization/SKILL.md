@@ -1,6 +1,6 @@
 ---
 name: performance-optimization
-description: Úsala cuando existan requisitos de rendimiento, sospeches una regresión o detectes patrones N+1, para medir y optimizar con datos, no suposiciones.
+description: Úsala ante requisitos de rendimiento, regresiones o patrones N+1: mide y optimiza con datos.
 ---
 
 # Performance Optimization

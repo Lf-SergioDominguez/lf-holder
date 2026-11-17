@@ -1,6 +1,6 @@
 ---
 name: incremental-implementation
-description: Úsala al implementar cambios multi-archivo o al retomar una tarea de un plan, para avanzar en incrementos pequeños y verificables.
+description: Úsala en cambios multi-archivo o al retomar un plan, para avanzar en incrementos pequeños y verificables.
 ---
 
 # Incremental Implementation

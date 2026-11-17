@@ -1,6 +1,6 @@
 ---
 name: verbose-runner
-description: Ejecuta comandos ruidosos (tests, builds, bin/console, composer, npm, logs) y devuelve SOLO fallos y un resumen. Úsalo para cualquier salida que pueda superar 40 líneas.
+description: Ejecuta comandos ruidosos (tests, builds, console, composer, npm) y devuelve solo fallos y resumen.
 model: haiku
 effort: low
 tools: Bash, Read, Grep

@@ -1,7 +1,7 @@
 ---
 name: symfony
 description: Convenciones y comandos para proyectos Symfony 6/7 (PHP 8): console, Doctrine, Twig, tests, ejecución local o en Docker.
-paths: "**/composer.json, src/**/*.php, config/**/*.yaml, config/**/*.php, templates/**/*.twig, migrations/**/*.php, tests/**/*.php"
+paths: "src/**/*.php, config/**/*.yaml, config/**/*.php, templates/**/*.twig, migrations/**/*.php, tests/**/*.php"
 ---
 
 # Symfony — guía operativa
