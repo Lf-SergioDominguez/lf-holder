@@ -24,3 +24,5 @@ metrics/
 .zprofile
 .zshrc
 /handoff.md
+# Resultados locales de los plugin evals (rutas y costes): nunca se versionan
+plugins/lf/evals/results/

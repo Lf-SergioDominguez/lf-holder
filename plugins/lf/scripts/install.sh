@@ -193,6 +193,9 @@ if step settings; then
   [ -d "$HOME/.ssh" ] || { run mkdir -p "$HOME/.ssh"; run chmod 700 "$HOME/.ssh"; }
   # Cachés que el sandbox debe poder escribir (sandbox.filesystem.allowWrite); bwrap falla si no existen.
   for d in .npm .cache .bun .config/composer; do [ -d "$HOME/$d" ] || run mkdir -p "$HOME/$d"; done
+  # statusLine del arnés: ruta estable ~/.claude/lf/statusline.sh (la referencia settings.lf.json).
+  if [ "$DRY" -eq 1 ]; then echo "  (dry-run) cp $ROOT/scripts/statusline.sh $CLAUDE_DIR/lf/"
+  else mkdir -p "$CLAUDE_DIR/lf" && cp "$ROOT/scripts/statusline.sh" "$CLAUDE_DIR/lf/statusline.sh" && log "statusline instalada en $CLAUDE_DIR/lf/statusline.sh"; fi
   # RTK retirado: `rtk init` añadía `@RTK.md` al CLAUDE.md global (coste fijo por sesión).
   if grep -q '^@RTK\.md[[:space:]]*$' "$CLAUDE_DIR/CLAUDE.md" 2>/dev/null; then
     run cp "$CLAUDE_DIR/CLAUDE.md" "$BACKUPS/CLAUDE.md.lf-$(date +%Y%m%d-%H%M%S).bak"

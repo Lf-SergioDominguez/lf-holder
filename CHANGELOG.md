@@ -4,6 +4,77 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+## [1.0.1] — 2026-11-17
+
+Cierra el hito 4 (release y evals) y da margen al contexto para que el handoff quepa antes del autocompact.
+
+### Añadido
+
+- **Statusline de contexto** (ADR 0021): `ctx 142k/200k 71%` siempre visible, gris por debajo del 75 %, amarillo desde el 75 % y rojo con «→ /lf:handoff» desde el 80 %. `install.sh` la copia a `~/.claude/lf/statusline.sh`, `merge-settings.sh` no pisa una `statusLine` ajena y `LF_CTX_LIMIT` ajusta el límite. Hace falta `/lf:setup` para recibirla.
+- **Flujo de release** (ADR 0019): `scripts/release.sh` comprueba que las versiones coinciden (ambos manifiestos, marca de `home/CLAUDE.md` y CHANGELOG), `claude plugin validate --strict`, `test-hooks.sh` y `claude plugin tag --dry-run`; con `--evals` añade la suite (tope 5 USD). No crea el tag ni hace push.
+- **Plugin evals** en `plugins/lf/evals/`: cinco casos (`/lf:handoff`, `/lf:s`, `/lf:m`, `/lf:triage` y uno negativo) con baseline sin plugin. Última pasada: con plugin 1.00 en los cinco; Δ medio +0,46 (+1,00 / +0,50 / +0,29 / +0,50 / 0,00). Corren sin el CLAUDE.md global, así que miden lo que aporta el plugin; las reglas de permisos las cubren `tests/gate-cases.tsv` y `test-hooks.sh`.
+- `docs/CONTRIBUTING.md`: desarrollo local (`--plugin-dir` y `/reload-plugins`), evals y release. ADR 0021 (índice 0001–0021).
+
+### Cambiado
+
+- `autoCompactWindow` pasa de 200000 a **220000**: el límite de trabajo sigue en 200K y los 20K de margen hacen que el handoff quepa antes del autocompact (Sonnet 5 corre con ventana de 1M, ADR 0006). Con `/autocompact` se ajusta por sesión.
+- La regla del handoff en `home/CLAUDE.md` pasa a «al 75–80 % de contexto (sobre 200K; la statusline lo marca)»; `MODELOS.md` y `ONBOARDING.md` actualizados.
+- `plugins/lf/evals/results/` queda en `.gitignore` (informes con rutas y costes locales).
+
+### Corregido
+
+- `plugin.json` y la marca de `home/CLAUDE.md` se quedaron en 0.9.0 en la 1.0.0 mientras `marketplace.json` decía 1.0.0: vuelven a coincidir en 1.0.1, sin lo cual el plugin no se actualiza para quien lo recibe por el marketplace.
+
+### Conocido
+
+- Sin validar en sesión real: `/lf:dream`, PreCompact y la expansión de `${CLAUDE_PLUGIN_ROOT}` en skills con `context: fork`. La statusline solo se ha probado con entradas simuladas del JSON documentado.
+
+## [1.0.0] — 2026-11-17
+
+Primera versión estable. Reúne los cuatro frentes del plan 0.11 (permisos, tokens, memoria, house style). Versión mínima de Claude Code: 2.1.295.
+
+### Añadido
+
+- Hook `bash-gate` (PreToolUse): clasifica el comando completo y decide `allow|ask|deny` (`LF_GATE=on|shadow|off`, por defecto `on`). Quita el `cd <cwd> &&` redundante y, ante un error interno, pregunta. `DELETE/DROP/TRUNCATE` → `deny` (lo lanza el usuario con `! …`), escrituras SQL y `rm` de ficheros del repo o de `$TMPDIR` → `ask`, borrado recursivo sobre raíz, home o fuera del repo → `deny`. Detalle en `plugins/lf/docs/PERMISOS.md` y ADR 0017.
+- `sandbox.excludedCommands` solo para binarios que no ejecutan código del repo (`docker`, `mysql`, `mariadb`, `gh`, git de red, `curl` a localhost) y perfil `home/settings.nosandbox.json` para `--no-sandbox` y Windows nativo.
+- `merge-settings.sh --prune` con manifiesto `~/.claude/lf/managed.json` y `home/managed-legacy.json`: las bajas de reglas llegan a quien ya había instalado.
+- **`/lf:dream`** y `scripts/dream-digest.mjs`: consolida la memoria entre sesiones (corregir, estructurar, promover, enfocar) a partir de un digest sin tokens, con copia previa `.prev.tgz`, enmascarado de credenciales y presupuestos (nota ≤30 líneas, `MEMORY.md` ≤60, `USER.md` ≤40). Manual, con aviso en SessionStart (ADR 0018).
+- Hook `PreCompact` (`precompact.sh`) con las instrucciones de qué conservar si se compacta a mano, y avisos de SessionStart cuando hay `handoff.md` en el cwd o ≥5 sesiones (o ≥7 días) sin consolidar.
+- Memoria de usuario `~/.claude/lf/memory/USER.md`, importada desde el CLAUDE.md global; `install.sh` la crea sin sobrescribirla. Docs `MEMORIA.md` y `PERMISOS.md`.
+- **House style corporativo de serie** (Lefebvre 2026) en `plugins/lf/house-style/`, instalado por `/lf:setup` en `~/.claude/lf/house-style/` y consultado por el CLAUDE.md global y `lf:frontend-astro-vue-react`. **`/lf:house-style [carpeta|.md|--reset]`** lo sustituye por otro; un destino `.custom` no lo pisa `/lf:setup`. Azul España `#001978` (`--lf-brand-spain`) como excepción de identidad de sucursal (ADR 0020).
+- `Hecho cuando: <comprobación ejecutable>` en el contrato M y en la entrega S/M, y bloque «Cómo pedir permisos sin fricción» en el CLAUDE.md global.
+- Docs que viajan con el plugin (`plugins/lf/docs/`, copiadas a `~/.claude/lf/docs/`) y plantillas de handoff y to-do en `plugins/lf/templates/`.
+- Auto-actualización del plugin: `FORCE_AUTOUPDATE_PLUGINS=1` y `autoUpdate` en `lefebvriano-holder`.
+- `docs/decisions/` con un ADR por fichero (0001–0020) y su índice.
+
+### Cambiado
+
+- `home/CLAUDE.md` pasa de 128 a 63 líneas: el stack detallado queda solo en las skills con `paths:` y los docs se leen bajo demanda.
+- Concisión por defecto: output style `Concise`, esfuerzo `medium` por modelo (`modelSettings`), `idleCompaction: false`, `skillListingMaxDescChars: 150`. `caveman` se reduce a `full|off`.
+- Las lecturas peligrosas pasan de `deny Read(...)` (que el sandbox convertía en `denyRead` y rompía la app) a `guard-read.sh`; en `deny` solo quedan las credenciales.
+- `trim-output.mjs` sustituye a `filter-output.sh`: avisa siempre de lo omitido y deja la salida completa en `$TMPDIR`.
+- Agentes: `lf:planner` en `effort: high`; `lf:executor` y `lf:reviewer` en `medium`. `setup`, `ultracode` y `opusplan` con `disable-model-invocation`; `s`, `m` y `triage` quedan en stubs de ≤6 líneas. Descripciones de skills y agentes ≤120 caracteres.
+- `docs/DECISIONS.md` se trocea en `docs/decisions/`; el README raíz baja a ≤90 líneas; las docs de OpenCode pasan a `opencode-lf/docs/`; `docs/ONBOARDING.md` exige `node` ≥22.
+- `plugin.json` y `marketplace.json` vuelven a coincidir: el desfase (0.9.0 frente a 0.10.0) impedía que nadie recibiera la 0.10.0.
+
+### Eliminado
+
+- **RTK** (ADR 0016): `commands/rtk.md`, `scripts/rtk.sh`, `home/settings.rtk.json` y los flags `--with-rtk`/`--only=rtk`. `install.sh` quita `@RTK.md` del CLAUDE.md global y `--prune` retira `Bash(rtk *)` y el hook `rtk hook claude`. El binario `rtk` hay que desinstalarlo a mano.
+- `commands/ultrathink.md` (la palabra `ultrathink` ya es nativa) y `hooks/filter-output.sh`.
+
+### Corregido
+
+- Los dry-run ya no preguntan: el gate los deja pasar.
+- `docs/DECISIONS.md`: doble «9», «solo dos agentes», `lf:reviewer` en Sonnet y `excludedCommands` desfasados.
+- `PROMPTING.md` y `ERRORES-COMUNES.md` vuelven a ser los de Claude Code (los de OpenCode viven en `opencode-lf/docs/`).
+
+### Conocido
+
+- El gate es una barandilla, no una frontera de seguridad: `grep -rn X .` puede leer `.env.local`, y `trim-output` no recorta la salida de comandos que fallan.
+- Pendiente del hito 4: `scripts/release.sh`, evals (`claude plugin eval`) y validación real de `/lf:dream`, PreCompact y la expansión de `${CLAUDE_PLUGIN_ROOT}` en skills con `context: fork`.
+
+## [0.10.0] — 2026-11-17
+
 ### Añadido
 
 - Plugin **Modern Web Guidance** de Google (`modern-web-guidance@googlechrome`) activo por defecto, con el marketplace `googlechrome` en `autoUpdate`. Llega a `~/.claude/settings.json` con `/lf:setup`.

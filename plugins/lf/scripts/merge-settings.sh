@@ -96,7 +96,10 @@ OUT=$({ cat "$TARGET"; printf '%s\n' "$FRAG_JSON"; printf '%s\n' "$PREV_JSON"; p
   input as $a | input as $b | input as $prev | input as $cur
   | (if $prune == 1 then ($a | strip($prev)) else $a end) as $base
   | (if $prune == 1 then {} else $cur end) as $man0
-  | merge($base; $b) as $merged
+  | merge($base; $b)
+  # Una statusLine ajena (otro comando que no sea la del arnés) no se pisa.
+  | (if ($a.statusLine.command // "") != "" and (($a.statusLine.command | contains("lf/statusline.sh")) | not)
+     then .statusLine = $a.statusLine else . end) as $merged
   | ( reduce paths[] as $p ({};
         setpath($p; (($man0 | getpath($p) // []) + ($b | getpath($p) // [])) | unique))
       | .hookCommands = (($man0.hookCommands // []) + [ $b.hooks // {} | .[][]? | .hooks[]? | .command ] | unique) ) as $man

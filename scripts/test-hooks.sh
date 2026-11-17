@@ -276,5 +276,22 @@ else
 fi
 rm -rf "$gdir"
 
+echo; echo "statusline.sh:"
+SL="$ROOT/plugins/lf/scripts/statusline.sh"
+sline() { # sline <fragmento esperado> <tokens de contexto> [código de color]
+  local out; out=$(printf '{"context_window":{"current_usage":{"input_tokens":1,"cache_read_input_tokens":%s}}}' "$2" | bash "$SL" 2>/dev/null)
+  if printf '%s' "$out" | grep -qF -- "$1" && { [ -z "${3:-}" ] || printf '%s' "$out" | grep -qF -- $'\033['"$3"'m'; }; then
+    ok=$((ok+1)); printf '  ok   %s tokens → %s\n' "$2" "$1"
+  else fail=$((fail+1)); printf '  FAIL %s tokens (esperaba %s): %s\n' "$2" "$1" "$out"; fi
+}
+sline "ctx 100k/200k 50%" 99999 2
+sline "76%" 152000 33
+sline "→ /lf:handoff" 165000 31
+echo '{}' | bash "$SL" | grep -qF "ctx 0k/200k 0%" && { ok=$((ok+1)); echo "  ok   sin current_usage → 0%"; } || { fail=$((fail+1)); echo "  FAIL sin current_usage"; }
+sm=$(mktemp -d); echo '{"statusLine":{"type":"command","command":"mi-linea.sh"}}' > "$sm/s.json"
+bash "$ROOT/plugins/lf/scripts/merge-settings.sh" "$ROOT/plugins/lf/home/settings.lf.json" --target "$sm/s.json" --prune >/dev/null 2>&1
+[ "$(jq -r .statusLine.command "$sm/s.json")" = "mi-linea.sh" ] && { ok=$((ok+1)); echo "  ok   merge respeta una statusLine ajena"; } || { fail=$((fail+1)); echo "  FAIL merge pisó la statusLine ajena"; }
+rm -rf "$sm"
+
 echo; echo "Resultado: $ok ok, $fail fallos"
 [ "$fail" -eq 0 ]

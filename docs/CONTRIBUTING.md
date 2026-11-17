@@ -41,6 +41,12 @@ Solo si aísla trabajo ruidoso o necesita otro modelo. Frontmatter mínimo: `nam
 
 En `plugins/lf/hooks/hooks.json`, comando `bash "${CLAUDE_PLUGIN_ROOT}/hooks/<script>.sh"` (o `node …/<script>.mjs`), `timeout` ≤5 s. El script debe salir 0 sin salida cuando no aplica (cero tokens). Si decide permisos, la lógica va en una función pura testeable (ver `hooks/gate/classify.mjs` y `tests/gate.test.mjs`). Añade casos a `scripts/test-hooks.sh` y ejecútalo.
 
+## Desarrollo local, evals y release
+
+- **Probar sin instalar:** `claude --plugin-dir ./plugins/lf` y `/reload-plugins` tras cada cambio.
+- **Evals** (`plugins/lf/evals/`, ADR 0019): cinco casos sobre lo que el plugin aporta (`/lf:handoff`, `/lf:s`, `/lf:m`, `/lf:triage` y un caso negativo que no debe disparar ningún flujo). Corren en un config aislado, **sin tu `CLAUDE.md` global**, y comparan con y sin plugin (Δ). `claude plugin eval plugins/lf --allow-tools Write Edit --max-cost-usd 5 --no-publish`; para depurar un caso, `--case <glob> --runs 1 --keep-temp`. Gastan tokens de tu cuenta: no se lanzan en cada cambio. Las reglas de permisos (`DELETE`, `--dry-run`) no se evalúan aquí: las cubren `tests/gate-cases.tsv` y `scripts/test-hooks.sh`.
+- **Release:** `bash scripts/release.sh` (versiones coherentes en ambos manifiestos, marca de `home/CLAUDE.md` y CHANGELOG; `claude plugin validate --strict`; `test-hooks.sh`, que ya lanza `node --test`; y `claude plugin tag --dry-run`, que exige árbol limpio). Con `--evals` añade la suite. Si todo pasa, `claude plugin tag plugins/lf --push` lo lanza el mantenedor.
+
 ## Decisiones de diseño
 
 Una decisión que cambia el comportamiento del arnés se registra como ADR en `docs/decisions/` (plantilla e índice en su `README.md`).

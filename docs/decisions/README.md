@@ -35,3 +35,4 @@ Alternativa descartada: …
 | [0020](0020-house-style-de-serie-y-comando.md) | 2026-11-17 | House style corporativo de serie y `/lf:house-style` |
 
 Las decisiones de 0001–0015 conservan el texto original; las cifras de coste son de la fecha indicada.
+| [0021](0021-margen-de-autocompact-y-statusline-de-contexto.md) | 2026-11-17 | Margen de autocompact (220K) y statusline de contexto |

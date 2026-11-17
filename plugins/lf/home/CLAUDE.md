@@ -1,4 +1,4 @@
-<!-- lf-harness 0.9.0 -->
+<!-- lf-harness 1.0.1 -->
 # Arnés LF — reglas globales
 
 Equipo web Lefebvre: PHP/Symfony, WordPress, Node, Astro, React, Vue, MySQL. La ruta y la forma de ejecutar cada proyecto las indica su propio `CLAUDE.md`.
@@ -35,9 +35,9 @@ Antes de tocar nada: `Triaje: S|M|L — <motivo en 5 palabras>`.
 ## Contexto
 
 - **Prohibido compactar por sistema.** Al terminar una tarea, `/clear` y la siguiente en sesión nueva; nunca encadeno tareas no relacionadas.
-- Al **75–80 %** de contexto: `/lf:handoff` (`handoff.md` y, si hace falta, `to-do.md`), `/clear` y sesión nueva; el handoff es la primera instrucción de la siguiente. `/compact` solo como último recurso y con instrucciones (decisiones, enfoques descartados, ficheros).
+- Al **75–80 %** de contexto (sobre 200K; la statusline lo marca): `/lf:handoff` (`handoff.md` y, si hace falta, `to-do.md`), `/clear` y sesión nueva; el handoff es la primera instrucción de la siguiente. `/compact` solo como último recurso y con instrucciones (decisiones, enfoques descartados, ficheros).
 - Handoff y to-do: no duplican lo recuperable en `git log`, código o el gestor de tareas; se sobrescriben; próximo paso concreto; fechas absolutas; <1 página.
-- Memoria: nota predictiva («lo que la próxima sesión necesitará»), un hecho por nota, sin documentos de análisis no pedidos.
+- Memoria: nota predictiva («lo que la próxima sesión necesitará»), un hecho por nota, sin documentos de análisis no pedidos. La consolida `/lf:dream` (manual; SessionStart avisa si toca).
 - Salidas largas (tests, builds, `bin/console`, logs, `composer`, `npm install`) → `lf:verbose-runner`. Nunca `cat` de ficheros grandes (Read con offset/limit o `grep -n`), `find` sin `-maxdepth`, ni leer `vendor/`, `node_modules/`, `var/`, `dist/`, `.git/` ni logs enteros.
 - Un cambio, una verificación: no relanzo la suite completa tras un cambio acotado.
 - Subagentes solo `lf:verbose-runner`, `lf:reviewer`, `Explore`, `lf:planner`/`lf:executor` (L) y los de GSD en L; agent teams no. Subagente nuevo → `model:` explícito.

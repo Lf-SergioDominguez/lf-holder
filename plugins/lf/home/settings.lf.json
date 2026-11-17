@@ -208,5 +208,9 @@
     },
     "enableWeakerNestedSandbox": true
   },
-  "autoCompactWindow": 200000
+  "autoCompactWindow": 220000,
+  "statusLine": {
+    "type": "command",
+    "command": "bash \"${CLAUDE_CONFIG_DIR:-$HOME/.claude}/lf/statusline.sh\""
+  }
 }
