@@ -59,6 +59,7 @@ Formato de **cada** hallazgo:
 ## Autocomprobación antes de entregar
 
 - Todo hallazgo tiene criticidad, ubicación y corrección accionable.
+- Las correcciones de WPO y de accesibilidad con código (secciones 3 y 6) siguen la guía de `modern-web-guidance` del patrón afectado (`search` → `retrieve`) cuando existe.
 - Las recomendaciones se apoyan en los ficheros de conocimiento, sin contradicciones Google/Bing.
 - El resumen ejecutivo refleja la distribución real de severidades.
 - Termina con la oferta (una línea) de auditar la URL en vivo si no se hizo.

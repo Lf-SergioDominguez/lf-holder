@@ -32,6 +32,7 @@ lf-<nombre>/
 
 - Registro de CPT/taxonomías en `init`; `register_activation_hook` para `flush_rewrite_rules`.
 - Scripts y estilos solo con `wp_enqueue_script/style` en `wp_enqueue_scripts` o `admin_enqueue_scripts`; nunca `<script>` inline sin `wp_add_inline_script`.
+- HTML, CSS y JS de cliente en temas y bloques: antes de implementar un patrón de UI o una optimización de Core Web Vitals, consulta `modern-web-guidance` (`search` → `retrieve`). Las guías son vanilla y encajan tal cual en PHP con `wp_enqueue_*`.
 - Opciones: `register_setting` + Settings API; datos de usuario en `user_meta`; datos transitorios en `set_transient`.
 
 ## Rendimiento

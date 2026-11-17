@@ -4,6 +4,13 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+### Añadido
+
+- Plugin **Modern Web Guidance** de Google (`modern-web-guidance@googlechrome`) activo por defecto, con el marketplace `googlechrome` en `autoUpdate`. Llega a `~/.claude/settings.json` con `/lf:setup`.
+- Integración en el arnés: una línea en §8 del CLAUDE.md global para que el agente la consulte sin que nadie la invoque, y una sección operativa en `lf:frontend-astro-vue-react` (cuándo usarla, encaje con S/M/L, Baseline, `legacy-scan` y entrega). Referencias de una línea en `wordpress`, `performance-optimization`, `security-and-hardening` y `seo-audit`.
+- Permisos solo para los subcomandos de lectura del CLI (`search`, `retrieve`, `list` y `legacy-scan`, con `npx -y` y con `pnpx`), y `DISABLE_TELEMETRY=1` en `env` para que el CLI no envíe consultas a Google.
+- Sección «Navegadores» (objetivo de Baseline) en `project-templates/CLAUDE.md`.
+
 ## [0.9.0] — 2026-11-05
 
 ### Cambiado

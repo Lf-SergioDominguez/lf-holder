@@ -34,6 +34,20 @@ paths: "**/*.astro, **/*.vue, **/*.tsx, **/*.jsx, astro.config.*, vite.config.*,
 - Estado derivado con `useMemo` solo si hay coste medido; efectos con dependencias completas; no hacer fetch en `useEffect` si el framework (Next/Astro) ofrece carga en servidor.
 - Composición sobre herencia; hooks personalizados para lógica reutilizable (`useX`).
 
+## Web moderna: skill `modern-web-guidance` (Google)
+
+El arnés activa por defecto el plugin `modern-web-guidance@googlechrome`, que se actualiza solo. Sus guías (más de 200, en HTML/CSS/JS sin framework y con datos de Baseline) salen del CLI `npx -y modern-web-guidance@latest`, así que siempre están al día. Úsala **por iniciativa propia**: el usuario no tiene que nombrarla ni conocer sus comandos. El CLI requiere Node.js 22 o superior. Las reglas de esta sección prevalecen sobre la descripción del plugin, que la declara obligatoria en cualquier tarea de HTML/CSS.
+
+- **Cuándo**: al implementar o cambiar un patrón de UI o una capacidad de la plataforma, como modal, popover, tooltip, tabla responsive, formulario o validación, dark mode, container queries, anchor positioning, view transitions, animaciones de scroll, LCP/INP/CLS, imágenes, accesibilidad, saneado de HTML, CSP o passkeys. **Cuándo no**: textos, colores o espaciados sueltos; config de Vite, tsconfig o ESLint; tests; backend.
+- **Cómo**: `npx -y modern-web-guidance@latest search "<2–5 palabras en inglés, sin framework>"` → `npx -y modern-web-guidance@latest retrieve "<id>[,<id>]"` (`pnpx modern-web-guidance@latest …` si el proyecto usa pnpm). Si `retrieve` guarda la salida en un fichero temporal, léelo con Read por rangos. Las guías se cargan en el contexto principal, nunca en un subagente, porque tienen que dar forma al código. Pide solo las guías que apliquen a la tarea.
+- **Triaje**: no cambia la clasificación. En S cuenta como parte del paso 1, sin preguntar. En M, las guías consultadas se citan en el contrato.
+- **Navegadores**: si el repo tiene `.mwgrc`, el CLI ya inyecta su objetivo en las guías, y ese objetivo manda. Si no lo tiene, usa la sección «Navegadores» del CLAUDE.md del proyecto. Si tampoco existe, aplica Baseline Widely available con los fallbacks que indique la guía, sin preguntar. Solo si el objetivo es dudoso (Electron, una exclusión de navegador, un polyfill pesado), propón añadir esa línea en la entrega.
+- **Adaptación**: las guías son vanilla; adáptalas al framework sin quitar la feature moderna (`useId()` para ids y `anchor-name`, `showModal()` vía ref, guarda de `window` en SSR o en el frontmatter de Astro).
+- **Modernizar código existente**: solo si el usuario pide modernizar o auditar patrones legacy en general, sin nombrar un componente. Es una tarea M o L. Ejecuta `npx -y modern-web-guidance@latest legacy-scan <ruta> --json > "${TMPDIR:-/tmp}/mwg-scan.json"` y lee el resultado con `jq`. Descarta los falsos positivos según `keepWhen`/`dropWhen` y aplica la guía de cada hallazgo. Si solo se pidió auditar, informa sin editar.
+- **Entrega**: la sección `### Modern Web Guidance` que pide la skill (una viñeta por guía aplicada) va después del resumen y no cuenta para el límite de 3–6 líneas del flujo S.
+- **Subcomandos prohibidos**: no ejecutes `install`, `update`, `uninstall`, `set-baseline` ni `set-allow-*`. Instalan skills o escriben `.mwgrc` en el repo. Si una guía los sugiere, díselo al usuario. Las actualizaciones las hace el marketplace.
+- **Sin red o sin permiso**: si el CLI no responde, sigue sin él y dilo en la línea de «no comprobado». No inventes ids ni citas de guías.
+
 ## Comunes
 
 - Accesibilidad mínima: elementos semánticos (`button`, `nav`, `main`), `alt` en imágenes, labels asociados, foco visible, contraste AA. Sin `div` clicables.

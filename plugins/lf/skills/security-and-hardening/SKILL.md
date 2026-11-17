@@ -27,6 +27,7 @@ Treat every external input as hostile, every secret as sacred, every authorizati
 - **Injection:** always parameterized queries / ORM — never string-concatenated SQL.
 - **Broken auth:** bcrypt/argon2 hashing (cost ≥12); sessions httpOnly+secure+sameSite, secret from env.
 - **XSS:** rely on framework auto-escaping; sanitize any raw HTML with DOMPurify; never `innerHTML` with user input.
+- **Client-side web security** (CSP, HTML sanitization, Trusted Types, passkeys/WebAuthn): retrieve the matching `modern-web-guidance` guide (`search` → `retrieve`) before implementing. It says when the native API (e.g. the Sanitizer API) is enough and when DOMPurify stays as a fallback.
 - **Broken access control:** check resource ownership, not just authentication, on every mutating endpoint.
 - **Security misconfiguration:** apply `helmet`/CSP; restrict CORS to known origins, never wildcard with credentials.
 - **Sensitive data exposure:** strip `passwordHash`/tokens from API responses; secrets only from env vars.

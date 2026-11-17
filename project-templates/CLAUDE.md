@@ -26,6 +26,10 @@ Una frase: qué hace este proyecto y para quién. Stack principal (p. ej. Symfon
 - Ej.: los DTO llevan sufijo `Input`/`Output`; las rutas se declaran en `config/routes/*.yaml`, no con atributos.
 - Ej.: no usar `EntityManager` fuera de repositorios.
 
+## Navegadores
+
+- Baseline objetivo: Baseline Widely available ← cámbialo si aplica (p. ej. «Baseline 2024», «Safari 17.4+», «sin polyfills; fallback propio ≤20 líneas»). El agente lo aplica a las guías de `modern-web-guidance` para decidir fallbacks. Si el repo tiene `.mwgrc`, que es la config del CLI, ese fichero manda: mantenlos iguales o deja solo uno. Borra la sección si el proyecto no tiene frontend.
+
 ## Zonas delicadas
 
 - Ficheros/módulos que no se tocan sin preguntar (facturación, auth, migraciones legadas…).
