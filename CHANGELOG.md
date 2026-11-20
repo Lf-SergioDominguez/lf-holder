@@ -4,6 +4,8 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+## [1.0.2] — 2026-11-20
+
 Ficheros de comunidad para quien usa el arnés.
 
 ### Añadido
