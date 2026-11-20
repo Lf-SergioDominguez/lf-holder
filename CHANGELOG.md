@@ -4,6 +4,15 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+Ficheros de comunidad para quien usa el arnés.
+
+### Añadido
+
+- `SECURITY.md`: versiones soportadas, alcance (bypass de `bash-gate`, escape del sandbox, inyección en hooks y scripts, fuga de secretos) y reporte privado de vulnerabilidades de GitHub.
+- `CODE_OF_CONDUCT.md` (Contributor Covenant 2.1) y `SUPPORT.md` (Discussions e Issues).
+- Formularios de issue (*Bug*, *Mejora*) en `.github/ISSUE_TEMPLATE/`; los issues en blanco quedan desactivados.
+- `docs/CONTRIBUTING.md`: el repo es una réplica sin pull requests; errores y propuestas por issue o discusión.
+
 ## [1.0.1] — 2026-11-17
 
 Cierra el hito 4 (release y evals) y da margen al contexto para que el handoff quepa antes del autocompact.

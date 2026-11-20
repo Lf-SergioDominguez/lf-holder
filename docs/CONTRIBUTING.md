@@ -1,5 +1,15 @@
 # Contribuir a lefebvriano-holder
 
+## Cómo contribuir
+
+Este repositorio es una réplica publicada del arnés y **no acepta pull requests**: los cambios se desarrollan aparte y llegan aquí con cada versión.
+
+- **Errores:** abre un issue con la plantilla *Bug*.
+- **Ideas y propuestas:** issue con la plantilla *Mejora*, o una discusión si aún es una idea abierta. Comprueba antes si choca con una decisión ya tomada (`docs/decisions/`).
+- **Dudas:** [SUPPORT.md](../SUPPORT.md). **Seguridad:** [SECURITY.md](../SECURITY.md). **Código de conducta:** [CODE_OF_CONDUCT.md](../CODE_OF_CONDUCT.md).
+
+Si quieres adaptar el arnés a tu equipo, haz un fork (licencia [MIT](../LICENSE)); el resto de esta guía explica cómo extenderlo sin disparar el coste en tokens.
+
 ## Principio
 
 Cada cosa que añadimos al arnés tiene un coste en tokens **en todas las sesiones de todo el equipo**. Antes de añadir, pregúntate: ¿se carga siempre o solo cuando hace falta?
@@ -31,7 +41,7 @@ Cada cosa que añadimos al arnés tiene un coste en tokens **en todas las sesion
 2. Cuerpo ≤150 líneas: procedimientos, reglas, anti-patrones. Nada de prosa motivacional. Ficheros de apoyo en la misma carpeta, referenciados con `${CLAUDE_PLUGIN_ROOT}/skills/<nombre>/…`.
 3. Prueba en local: `/plugin marketplace add /ruta/al/repo` → `/plugin install lf@lefebvriano-holder` → `/lf:<nombre>`; comprueba con `/context` que el listado de skills no crece más de lo esperado.
 4. Sube `version` en `.claude-plugin/marketplace.json` **y** en `plugins/lf/.claude-plugin/plugin.json` (misma versión) y la marca `<!-- lf-harness X.Y.Z -->` de `plugins/lf/home/CLAUDE.md`. Sin bump, los compañeros no reciben la actualización.
-5. PR con: qué problema resuelve, coste en tokens (siempre activo o bajo demanda), captura de `/context` antes/después si añade descripción visible.
+5. Anota en el CHANGELOG qué problema resuelve y su coste en tokens (siempre activo o bajo demanda) y, si añade descripción visible, compara `/context` antes y después.
 
 ## Añadir un agente
 
@@ -53,7 +63,7 @@ Una decisión que cambia el comportamiento del arnés se registra como ADR en `d
 
 ## Cambiar settings globales o CLAUDE.md
 
-Edita `plugins/lf/home/settings.lf.json` o `plugins/lf/home/CLAUDE.md` (si cambias este último, actualiza también la marca `<!-- lf-harness X.Y.Z -->` de la línea 1 al subir versión), ejecuta `plugins/lf/scripts/install.sh --dry-run --only=settings,claude-md` con `CLAUDE_CONFIG_DIR=$(mktemp -d)` y pega el diff en el PR. Recuerda que `CLAUDE.md` se lee en **todos** los proyectos de **todos**: cada línea debe ganarse su sitio.
+Edita `plugins/lf/home/settings.lf.json` o `plugins/lf/home/CLAUDE.md` (si cambias este último, actualiza también la marca `<!-- lf-harness X.Y.Z -->` de la línea 1 al subir versión), ejecuta `plugins/lf/scripts/install.sh --dry-run --only=settings,claude-md` con `CLAUDE_CONFIG_DIR=$(mktemp -d)` y revisa el diff antes de instalar. Recuerda que `CLAUDE.md` se lee en **todos** los proyectos de **todos**: cada línea debe ganarse su sitio.
 
 ## Medir
 

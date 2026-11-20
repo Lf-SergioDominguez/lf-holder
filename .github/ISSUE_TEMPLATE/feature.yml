@@ -1,0 +1,29 @@
+name: Mejora
+description: Propón una skill, regla, hook o cambio.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problema
+      description: Qué te frena hoy (fricción, coste en tokens, calidad). Datos si los tienes.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Propuesta
+      description: Qué añadirías o cambiarías y dónde (skill, agente, hook, CLAUDE.md, settings).
+    validations:
+      required: true
+  - type: dropdown
+    id: cost
+    attributes:
+      label: Coste en contexto
+      description: Ver la tabla de docs/CONTRIBUTING.md.
+      options:
+        - Bajo demanda (skill manual o con paths, hook silencioso)
+        - Siempre activo (CLAUDE.md, descripción de skill o agente)
+        - No lo sé
+    validations:
+      required: true

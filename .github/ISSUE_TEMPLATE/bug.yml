@@ -1,0 +1,34 @@
+name: Bug
+description: Algo del arnés no funciona como está documentado.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: "Si es una vulnerabilidad, **no la publiques aquí**: sigue SECURITY.md."
+  - type: input
+    id: versions
+    attributes:
+      label: Versiones
+      description: Plugin `lf` (`/plugin`), Claude Code (`claude --version`), sistema operativo y si usas sandbox.
+      placeholder: lf 1.0.1, Claude Code 2.1.300, WSL2 con sandbox
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: Qué pasa y qué esperabas
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Cómo reproducirlo
+      description: Prompt, comando o pasos mínimos. Sin secretos ni datos de clientes.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Salida relevante
+      description: Solo las líneas útiles (error, decisión de bash-gate, /context…).
+      render: text

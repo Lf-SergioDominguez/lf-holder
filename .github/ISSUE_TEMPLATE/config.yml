@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Vulnerabilidad de seguridad
+    url: https://github.com/Lf-SergioDominguez/lf-holder/security/advisories/new
+    about: Repórtala en privado; no la publiques en un issue.
+  - name: Dudas de uso
+    url: https://github.com/Lf-SergioDominguez/lf-holder/discussions
+    about: Preguntas de instalación o uso, en Discussions.
