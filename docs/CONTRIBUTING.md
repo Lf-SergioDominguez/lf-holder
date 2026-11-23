@@ -23,6 +23,14 @@ Cada cosa que añadimos al arnés tiene un coste en tokens **en todas las sesion
 | Hook                                       | Un proceso por evento; 0 tokens si no imprime nada          | Automatismos deterministas                             |
 | Línea en `plugins/lf/home/CLAUDE.md`       | Siempre, en todos los proyectos                             | Reglas globales imprescindibles (≤70 líneas en total)  |
 
+## Añadir un perfil
+
+Un perfil concreta, para un equipo, lo que el núcleo deja genérico: stack, ramas, flujo de deploy y gates que bloquean o avisan. No es una skill ni se carga solo: `/lf:setup` lo ofrece y lo guarda en `~/.claude/lf/config.json`.
+
+1. Copia `plugins/lf/profiles/generic.md` a `plugins/lf/profiles/<equipo>.md` (nombre en minúsculas, dígitos y guiones) y mantén las secciones *Stack*, *Ramas*, *Deploy* y *Gates*. Frontmatter: `name` igual que el fichero y `description` de una línea.
+2. Describe solo lo que tu equipo hace de verdad, en pocas líneas: es contexto que otros leerán.
+3. Comprueba con `CLAUDE_CONFIG_DIR=$(mktemp -d) bash plugins/lf/scripts/install.sh --only=config --profile=<equipo>`.
+
 ## Añadir una skill
 
 1. Crea `plugins/lf/skills/<nombre>/SKILL.md` con frontmatter:

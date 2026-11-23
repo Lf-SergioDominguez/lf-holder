@@ -6,6 +6,7 @@
 #   settings   fusiona home/settings.lf.json en ~/.claude/settings.json (modelo, permisos, sandbox, plugins);
 #              antes retira lo que el arnés puso en versiones anteriores (manifiesto ~/.claude/lf/managed.json)
 #   gsd        si GSD está instalado: poda sus hooks (deja write-guard), perfil `core`, quita agentes sueltos
+#   config    perfil de equipo (profiles/<nombre>.md → ~/.claude/lf/profiles/) y elecciones en ~/.claude/lf/config.json
 #   taste     OPCIONAL (no va por defecto; actívalo con --with-taste o --only=taste): habilita el plugin
 #              taste-skill (Leonxlnx/taste-skill, MIT) para diseño anti-slop; Claude Code lo descarga al abrir sesión
 #
@@ -14,8 +15,11 @@
 #   /plugin install lf@lefebvriano-holder
 #   /lf:setup   (ejecuta este script desde la caché del plugin)
 #
-# Uso: plugins/lf/scripts/install.sh [--only=deps,claude-md,settings,gsd,taste] [--with-taste] [--dry-run] [--no-sandbox] [--windows] [--yes] [--rollback]
+# Uso: plugins/lf/scripts/install.sh [--only=deps,claude-md,settings,gsd,config,taste] [--with-taste] [--profile=<nombre>] [--telemetry=on|off] [--telemetry-every=weekly|month-ends|monthly] [--dry-run] [--no-sandbox] [--windows] [--yes] [--rollback]
 #   --with-taste  añade el paso taste a los pasos por defecto
+#   --profile     perfil de equipo para el paso config (por defecto el ya guardado, o generic)
+#   --telemetry   guarda la elección de telemetría opt-in en config.json (por defecto la ya guardada, o off)
+#   --telemetry-every  frecuencia del informe si la telemetría está activa (weekly, month-ends = inicio y final de mes, o monthly; por defecto la guardada, o weekly)
 #   --dry-run     muestra qué haría (diffs) sin tocar nada
 #   --no-sandbox  no instala deps ni activa sandbox; usa permissions.defaultMode=dontAsk y los allows de home/settings.nosandbox.json
 #   --windows     permite instalar en Windows nativo (Git Bash); implica --no-sandbox
@@ -27,7 +31,8 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"   # raíz del plugin (plugins/lf, o su 
 CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 SETTINGS="$CLAUDE_DIR/settings.json"
 BACKUPS="$CLAUDE_DIR/backups"
-ONLY="deps,claude-md,settings,gsd"
+ONLY="deps,claude-md,settings,gsd,config"
+PROFILE=""; TELEMETRY=""; EVERY=""
 WITH_TASTE=0
 DRY=0; NOSANDBOX=0; WINDOWS=0; YES=0; ROLLBACK=0
 
@@ -35,16 +40,22 @@ for arg in "$@"; do
   case "$arg" in
     --only=*) ONLY="${arg#--only=}" ;;
     --with-taste) WITH_TASTE=1 ;;
+    --profile=*) PROFILE="${arg#--profile=}" ;;
+    --telemetry=*) TELEMETRY="${arg#--telemetry=}" ;;
+    --telemetry-every=*) EVERY="${arg#--telemetry-every=}" ;;
     --dry-run) DRY=1 ;;
     --no-sandbox) NOSANDBOX=1 ;;
     --windows) WINDOWS=1 ;;
     --yes|-y) YES=1 ;;
     --rollback) ROLLBACK=1 ;;
-    -h|--help) sed -n '2,25p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,29p' "$0"; exit 0 ;;
     *) echo "argumento desconocido: $arg" >&2; exit 1 ;;
   esac
 done
 [ "$WITH_TASTE" -eq 1 ] && ONLY="$ONLY,taste"
+case "$TELEMETRY" in ""|on|off) ;; *) echo "--telemetry admite on u off, no «$TELEMETRY»" >&2; exit 1 ;; esac
+case "$EVERY" in ""|weekly|month-ends|monthly) ;; *) echo "--telemetry-every admite weekly, month-ends o monthly, no «$EVERY»" >&2; exit 1 ;; esac
+case "$PROFILE" in *[!a-z0-9-]*) echo "--profile solo admite minúsculas, dígitos y guiones" >&2; exit 1 ;; esac
 
 log()  { printf '\033[1;34m[lf]\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33m[lf]\033[0m %s\n' "$*" >&2; }
@@ -259,6 +270,32 @@ if step taste; then
     [ "$NOSANDBOX" -eq 1 ] && args+=(--no-sandbox)
     bash "$ROOT/scripts/merge-settings.sh" "${args[@]}"
     log "taste-skill habilitado: Claude Code lo descarga al abrir la sesión (solo el plugin principal, no taste-skill-classics)"
+  fi
+fi
+
+# ---------------------------------------------------------------- perfil y elecciones
+if step config; then
+  cfg="$CLAUDE_DIR/lf/config.json"
+  cur=$(jq -c '.' "$cfg" 2>/dev/null || echo '{}')
+  prof="${PROFILE:-$(jq -r '.profile // "generic"' <<<"$cur")}"
+  if [ ! -f "$ROOT/profiles/$prof.md" ]; then
+    echo "perfil «$prof» desconocido; disponibles: $(cd "$ROOT/profiles" && ls *.md | sed 's/\.md$//' | paste -sd' ' -)" >&2
+    exit 1
+  fi
+  case "${TELEMETRY:-$(jq -r 'if .telemetry == true then "on" else "off" end' <<<"$cur")}" in on) tel=true ;; *) tel=false ;; esac
+  every="${EVERY:-$(jq -r '.telemetryEvery // "weekly"' <<<"$cur")}"
+  step taste && taste=true || taste=$(jq '.optional.taste // false' <<<"$cur")
+  step gsd && [ -d "$CLAUDE_DIR/gsd-core" ] && gsd=true || gsd=$(jq '.optional.gsd // false' <<<"$cur")
+  new=$(jq -n --argjson cur "$cur" --arg p "$prof" --argjson t "$tel" --arg every "$every" --argjson taste "$taste" --argjson gsd "$gsd" \
+        --argjson win "$([ "$IS_WINDOWS" -eq 1 ] && echo true || echo false)" \
+        '$cur + {version: 1, profile: $p, telemetry: $t, telemetryEvery: $every, windows: $win, optional: {taste: $taste, gsd: $gsd}}')
+  if [ "$DRY" -eq 1 ]; then
+    echo "  (dry-run) cp $ROOT/profiles/*.md $CLAUDE_DIR/lf/profiles/"
+    echo "  (dry-run) escribir en $cfg: $new"
+  else
+    mkdir -p "$CLAUDE_DIR/lf/profiles" && cp "$ROOT"/profiles/*.md "$CLAUDE_DIR/lf/profiles/"
+    printf '%s\n' "$new" | jq . > "$cfg"
+    log "perfil «$prof», telemetría $([ "$tel" = true ] && echo "activada ($every)" || echo desactivada); elecciones en $cfg"
   fi
 fi
 

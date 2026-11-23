@@ -10,6 +10,7 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ### Añadido
 
+- H1 de la hoja de ruta: `/lf:setup` guiado con perfiles. Pregunta perfil de equipo, telemetría sí/no (solo guarda la elección; el envío llega con H2) y opcionales; `install.sh` gana el paso `config` y los flags `--profile=`, `--telemetry=` y `--telemetry-every=weekly|month-ends|monthly`, y guarda las elecciones en `~/.claude/lf/config.json` (los perfiles se copian a `~/.claude/lf/profiles/`). Perfiles iniciales: `web` y `generic` en `plugins/lf/profiles/` (ADR 0022).
 - `docs/VISION.md`: definición, declaración de intenciones y hoja de ruta hacia 1.1.0 (telemetría opt-in, `/lf:setup` guiado con perfiles, quality gates, evals reales y bucle de automejora).
 
 ## [1.0.2] — 2026-11-20

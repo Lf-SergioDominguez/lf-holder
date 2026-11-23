@@ -181,6 +181,18 @@ if [ -d "$ROOT/plugins/lf/house-style" ]; then
   CLAUDE_CONFIG_DIR="$hc" bash "$HS" --reset >/dev/null
   hcheck "$([ -f "$hc/lf/house-style/.custom" ] && echo custom || echo serie)|$(ls "$hc/lf/house-style" | wc -l)" "serie|$(ls "$ROOT/plugins/lf/house-style" | wc -l)" "house-style.sh --reset: vuelve al de serie"
 fi
+# install.sh paso config: perfil y elecciones en config.json; una segunda ejecución conserva lo no indicado
+LF_INSTALL="$ROOT/plugins/lf/scripts/install.sh"; cc="$mtmp/cfg"
+HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --profile=web --telemetry=on >/dev/null 2>&1
+hcheck "$(jq -c '[.profile, .telemetry]' "$cc/lf/config.json")|$(ls "$cc/lf/profiles" | paste -sd,)" '["web",true]|generic.md,web.md' "install config: guarda perfil y telemetría y copia los perfiles"
+HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --telemetry-every=month-ends >/dev/null 2>&1
+HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config >/dev/null 2>&1
+hcheck "$(jq -c '[.profile, .telemetry, .telemetryEvery]' "$cc/lf/config.json")" '["web",true,"month-ends"]' "install config: sin flags conserva lo guardado y la frecuencia"
+HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$mtmp/vacio" bash "$LF_INSTALL" --only=config >/dev/null 2>&1
+hcheck "$(jq -c '[.profile, .telemetry, .telemetryEvery]' "$mtmp/vacio/lf/config.json")" '["generic",false,"weekly"]' "install config: por defecto generic, telemetría off y weekly"
+HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --profile=nope >/dev/null 2>&1; hcheck "$?" "1" "install config: perfil desconocido falla"
+HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --telemetry=si >/dev/null 2>&1; hcheck "$?" "1" "install config: --telemetry inválido falla"
+HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --telemetry-every=daily >/dev/null 2>&1; hcheck "$?" "1" "install config: --telemetry-every inválido falla"
 rm -rf "$mtmp"
 
 echo; echo "log-permission.sh:"
