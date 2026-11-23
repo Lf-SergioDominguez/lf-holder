@@ -83,6 +83,7 @@ Actualizar: `/plugin marketplace update lefebvriano-holder` y `/lf:setup`; al in
 
 - Usar bien el arnés: [PROMPTING](plugins/lf/docs/PROMPTING.md) y [ERRORES-COMUNES](plugins/lf/docs/ERRORES-COMUNES.md).
 - Contribuir (todo lo que se añade cuesta tokens a todo el equipo): [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) y [CHANGELOG.md](CHANGELOG.md).
+- Hacia dónde va: [docs/VISION.md](docs/VISION.md).
 - Por qué es así: [docs/decisions/README.md](docs/decisions/README.md); punto de partida en [docs/brief-original.md](docs/brief-original.md).
 
 ## Licencia

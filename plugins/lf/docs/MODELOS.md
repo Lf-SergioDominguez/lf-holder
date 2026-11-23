@@ -57,4 +57,4 @@ La caché de prompts está atada al modelo. Cambiar de Opus a Sonnet a mitad de 
 
 ## Compactación
 
-`idleCompaction` está desactivado y `"autoCompactWindow": 220000` es solo red de seguridad: 20K de margen sobre el límite de trabajo de 200K para que el handoff quepa. El umbral operativo es el 75–80 % de esos 200K (150–160K): la statusline del arnés lo muestra siempre (amarillo ≥75 %, rojo ≥80 %), se escribe el handoff y se abre sesión nueva. `/compact` solo como último recurso y con instrucciones explícitas de qué conservar (decisiones, enfoques descartados, ficheros modificados).
+`idleCompaction` está desactivado y `"autoCompactWindow": 220000` es solo red de seguridad: Claude Code compacta hacia `window − ~33K` (≈187K). La statusline del arnés mide contra ese umbral real (lee el `autoCompactWindow` efectivo; un proyecto con 200000 lo baja a ≈167K) y avisa por tokens restantes: amarillo con <30K, rojo con «→ /lf:handoff» con <20K. En rojo se escribe el handoff y se abre sesión nueva. `/compact` solo como último recurso y con instrucciones explícitas de qué conservar (decisiones, enfoques descartados, ficheros modificados).

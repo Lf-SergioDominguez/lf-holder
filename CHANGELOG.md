@@ -4,6 +4,14 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+### Corregido
+
+- La statusline medía contra 200K fijos y el autocompact real salta hacia `autoCompactWindow − ~33K`. Un proyecto con `autoCompactWindow: 200000` compactaba a ~167K, en mitad del handoff, mientras la statusline marcaba 83 %. Ahora lee el valor efectivo (proyecto local > proyecto > usuario), muestra `ctx usados/umbral` y avisa por tokens restantes (amarillo <30K, rojo <20K). `session-start` avisa si el valor efectivo es <220000 (ADR 0021, addendum).
+
+### Añadido
+
+- `docs/VISION.md`: definición, declaración de intenciones y hoja de ruta hacia 1.1.0 (telemetría opt-in, `/lf:setup` guiado con perfiles, quality gates, evals reales y bucle de automejora).
+
 ## [1.0.2] — 2026-11-20
 
 Ficheros de comunidad para quien usa el arnés.
