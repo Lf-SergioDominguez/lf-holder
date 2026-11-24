@@ -65,6 +65,7 @@ Cada hito se hace en su propia sesión.
 | **H3 — Quality gates en local** | Hook `Stop`: si el cambio toca lógica y ningún test, pide el test (o una justificación) una vez. Los comandos y las rutas salen del perfil. Habrá una plantilla de pipeline en `project-templates/` para que local y CI exijan lo mismo. | 1, 4 |
 | **H4 — Evals reales** | Casos sacados de tareas reales: un bug Symfony con test, un componente Vue, un N+1, un gate que debe bloquear. `scripts/evals.sh` guarda un resumen, lo compara con la ejecución anterior y marca regresiones. Lo lanza el mantenedor. | 3, 4 |
 | **H5 — Bucle de automejora** | `/lf:improve`, solo para el mantenedor. Cruza la telemetría con las evals, propone 1–3 cambios con hipótesis y métrica, se miden y se registran como ADR. | 5 |
+| **H6 — MCP opcionales en el setup** | `/lf:setup` pregunta qué MCP montar (ninguno por defecto): Playwright (QA), GitHub, Atlassian (Jira) y Figma. Cada uno se instala con alcance de usuario y tiene una ficha en `plugins/lf/docs/MCP.md`: para qué sirve, coste de contexto, permisos (`allow`/`ask`) y cuándo es mejor la CLI (`gh` antes que el MCP de GitHub). Atlassian y Figma existen como conectores de claude.ai: se documenta esa vía antes que un servidor local. | 1, 4 |
 
 ### Privacidad de la telemetría
 
