@@ -6,7 +6,7 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ### Corregido
 
-- La statusline medía contra 200K fijos y el autocompact real salta hacia `autoCompactWindow − ~33K`. Un proyecto con `autoCompactWindow: 200000` compactaba a ~167K, en mitad del handoff, mientras la statusline marcaba 83 %. Ahora lee el valor efectivo (proyecto local > proyecto > usuario), muestra `ctx usados/umbral` y avisa por tokens restantes (amarillo <30K, rojo <20K). `session-start` avisa si el valor efectivo es <220000 (ADR 0021, addendum).
+- El autocompact se cruzaba con el handoff: Claude Code compacta hacia `autoCompactWindow − ~33K`, no al 100 % de la ventana, y un proyecto con `autoCompactWindow: 200000` compactaba a ~167K. `autoCompactWindow` pasa a 253000 (el autocompact salta hacia los 220K) y la statusline mide sobre el límite de trabajo de 200K (amarillo 75 %, rojo 80 %); lee el valor efectivo (proyecto local > proyecto > usuario) y, si fija una ventana menor, mide sobre ese umbral real. `session-start` avisa si el valor efectivo es <253000 (ADR 0021, addenda).
 
 ### Añadido
 

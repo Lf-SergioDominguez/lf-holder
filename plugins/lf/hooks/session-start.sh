@@ -8,7 +8,7 @@
 #      o perfil distinto de budget).
 #   5. settings.json conserva allows amplios de versiones antiguas (o el hook de RTK) → /lf:setup.
 #   6. Claude Code es anterior a la versión mínima que declara el arnés.
-#   6b. El autoCompactWindow efectivo (proyecto o usuario) es <220000.
+#   6b. El autoCompactWindow efectivo (proyecto o usuario) es <253000.
 #   7. Existe handoff.md en el cwd → léelo primero.
 #   8. Hay ≥5 sesiones (o ≥7 días con alguna) sin consolidar en este proyecto → /lf:dream.
 set -uo pipefail
@@ -49,11 +49,11 @@ if [ -f "$cfg" ] && jq -e '.workflow.auto_advance == true or .workflow.plan_chec
   echo "lf: $cfg de GSD en modo caro (auto_advance, plan-checker o planner en Opus); ajústalo con: bash \"$root/scripts/gsd-lean.sh\""
 fi
 
-# autoCompactWindow efectivo (proyecto local > proyecto > usuario) por debajo de 220000: el autocompact salta
-# hacia window − 33K y no deja sitio al handoff (ADR 0021).
+# autoCompactWindow efectivo (proyecto local > proyecto > usuario) por debajo de 253000: el autocompact salta
+# hacia window − 33K, antes de los 220K, y se cruza con el handoff (ADR 0021).
 acw=$(jq -rs 'map(.autoCompactWindow // empty) | first // empty' .claude/settings.local.json .claude/settings.json "$settings" 2>/dev/null || true)
-if [ -n "$acw" ] && [ "$acw" -lt 220000 ] 2>/dev/null; then
-  echo "lf: autoCompactWindow efectivo es $acw (<220000): el autocompact se adelanta al handoff; súbelo a 220000 en el settings que lo fija."
+if [[ "$acw" =~ ^[0-9]+$ ]] && [ "$acw" -gt 33000 ] && [ "$acw" -lt 253000 ]; then
+  echo "lf: autoCompactWindow efectivo es $acw (<253000): el autocompact salta hacia $(( (acw - 33000) / 1000 ))K y se cruza con el handoff; súbelo a 253000 en el settings que lo fija."
 fi
 
 if [ -f handoff.md ]; then

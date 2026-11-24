@@ -7,8 +7,16 @@ Motivo: el % nativo solo aparece junto al autocompact; al terminar una tarea con
 Alternativas descartadas: desactivar el autocompact (si se llega al tope ni cabe el handoff); un hook que avise al modelo al 75 % (gasta tokens y la statusline ya lo hace gratis).
 Ajuste: `LF_CTX_LIMIT` cambia el límite que usa la statusline; el valor de `autoCompactWindow` se ajusta por sesión con `/autocompact`.
 
+> Valores vigentes (2026-11-24): `autoCompactWindow` 253000 y statusline sobre 200K al 75/80 %; ver el último addendum.
+
 ## Addendum 2026-11-23 — la statusline mide contra el umbral real
 
 Problema: en un proyecto cuyo `.claude/settings.json` conservaba `autoCompactWindow: 200000` (pisa el 220000 de usuario), la statusline marcaba «166k/200k 83 % → /lf:handoff» y el autocompact saltó durante el handoff. Claude Code no compacta al 100 % de la ventana sino hacia `autoCompactWindow − ~33K` (≈20K de reserva de salida + ≈13K de margen): con 200000, hacia los 167K, justo ese 83 %.
 Decisión: la statusline lee el `autoCompactWindow` efectivo (proyecto local > proyecto > usuario), usa `window − 33000` como denominador y colorea por tokens que faltan: amarillo con <30K, rojo con «→ /lf:handoff» con <20K. `session-start.sh` avisa si el valor efectivo es <220000. `LF_CTX_LIMIT` ahora fuerza el umbral directamente.
 Descartado: mantener el 200K fijo (dos bases distintas para un mismo aviso) y escribir el settings del proyecto desde el plugin (es fichero del repo, lo decide el equipo).
+
+## Addendum 2026-11-24 — el autocompact salta hacia los 220K y la statusline vuelve a 200K
+
+Problema: con 220000 el autocompact real queda en ~187K y la statusline (187K de denominador) dejaba de hablar del límite de trabajo de 200K que usan el CLAUDE.md y el flujo de handoff.
+Decisión: `autoCompactWindow` pasa a **253000** (220K + ~33K de reserva), así que el autocompact salta hacia los 220K. La statusline vuelve a medir sobre 200K con los avisos por porcentaje (amarillo 75 %, rojo 80 %); su denominador es `mín(200K, window − 33K)`, de modo que un settings con una ventana menor sigue avisando a tiempo. `session-start` avisa con un valor efectivo <253000.
+Descartado: dejar 220000 y medir sobre 200K (el rojo del 80 % llegaría a 27K del autocompact, sin margen si el turno trae una salida grande).

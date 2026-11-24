@@ -65,7 +65,7 @@ Todo lo que instala el arnés (settings globales, CLAUDE.md, plugin, hooks) es c
 - Para discutir la clasificación antes: `/lf:triage <tarea>`. Para forzarla: `/lf:s`, `/lf:m`, `/lf:l`.
 - Modelo: `claude-sonnet` (el más nuevo) por defecto; Haiku para todo subagente ruidoso. Para planificar una L: `/model claude-opus` (el más nuevo) y vuelve a Sonnet para ejecutar. **Fable no se usa en ningún flujo.** Detalle: [MODELOS.md](../plugins/lf/docs/MODELOS.md).
 - Atajos: `/lf:opusplan` (Opus planifica y Sonnet ejecuta), `/lf:ultracode` (sesión entera a xhigh y multiagente); para razonar a fondo en un solo turno escribe `ultrathink` en el prompt.
-- Contexto: **nunca compactes**. Al 75–80 % de contexto, `/lf:handoff` y `/clear`; la statusline del arnés muestra el % de contexto sobre 200K (amarillo al 75 %, rojo al 80 %); la compactación automática (`autoCompactWindow` a 220K) es solo la red de seguridad de una sesión que ya se pasó de larga. `/compact` solo como último recurso y con instrucciones de qué conservar.
+- Contexto: **nunca compactes**. Al 75–80 % de contexto, `/lf:handoff` y `/clear`; la statusline del arnés muestra el % de contexto sobre 200K (amarillo al 75 %, rojo al 80 %); la compactación automática (`autoCompactWindow` a 253000, salta hacia los 220K) es solo la red de seguridad de una sesión que ya se pasó de larga. `/compact` solo como último recurso y con instrucciones de qué conservar.
 - Auditoría SEO/WPO/a11y: `/lf:seo-audit <ficheros o URL>`.
 - Commit y `git push`: solo si se lo pides, y te preguntará (`ask`). PRs y `--amend` los haces tú.
 
