@@ -4,6 +4,10 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+## [1.0.3] — 2026-11-24
+
+Primer paso hacia 1.1.0: setup guiado con perfiles (H1) y telemetría opt-in (H2). Quedan H3–H7; 1.1.0 llegará al cerrar H7.
+
 ### Eliminado
 
 - GSD sale del flujo del arnés (ADR 0024, sustituye a la 0014): hook `gsd-one-per-session.sh`, scripts `gsd-lean.sh`, `prune-gsd-hooks.sh` y `gsd-surface.cjs`, plantilla `planning-config.json`, paso `gsd` de `install.sh` (`--only=gsd` se ignora con aviso), `optional.gsd` de `config.json` y los avisos de GSD de `session-start.sh`. No se desinstala GSD a nadie.
@@ -20,7 +24,8 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ### Añadido
 
-- H1 de la hoja de ruta: `/lf:setup` guiado con perfiles. Pregunta perfil de equipo, telemetría sí/no (solo guarda la elección; el envío llega con H2) y opcionales; `install.sh` gana el paso `config` y los flags `--profile=`, `--telemetry=` y `--telemetry-every=weekly|month-ends|monthly`, y guarda las elecciones en `~/.claude/lf/config.json` (los perfiles se copian a `~/.claude/lf/profiles/`). Perfiles iniciales: `web` y `generic` en `plugins/lf/profiles/` (ADR 0022).
+- H1 de la hoja de ruta: `/lf:setup` guiado con perfiles. Pregunta perfil de equipo, telemetría sí/no y opcionales; `install.sh` gana el paso `config` y los flags `--profile=`, `--telemetry=on|off` y `--telemetry-every=weekly|monthly` (un `month-ends` guardado se migra a `monthly`), y guarda las elecciones en `~/.claude/lf/config.json` (los perfiles se copian a `~/.claude/lf/profiles/`). Perfiles iniciales: `web` y `generic` en `plugins/lf/profiles/` (ADR 0022).
+- H2 de la hoja de ruta: `/lf:telemetry status|preview|send|off` sobre `plugins/lf/scripts/telemetry.mjs`. El informe es agregado (semanal o mensual), sin prompts, código, rutas, proyectos ni ids de sesión, y se valida contra una lista blanca (`telemetry-schema.json`). `send` abre una issue con `gh` en `Lf-SergioDominguez/lf-holder-metrics` y solo entonces avanza `lastSent`; una GitHub Action la guarda en `<proyecto>/<versión>/<timestamp>-<issue>/report.json` (ADR 0023).
 - `docs/VISION.md`: definición, declaración de intenciones y hoja de ruta hacia 1.1.0 (telemetría opt-in, `/lf:setup` guiado con perfiles, quality gates, evals reales y bucle de automejora).
 
 ## [1.0.2] — 2026-11-20
