@@ -1,13 +1,13 @@
 # Onboarding — lefebvriano-holder
 
-Arnés de Claude Code del equipo web. Te da: triaje automático de tareas (S/M/L) sin preguntas ni prompts de permiso en tareas pequeñas y medianas, recorte de salidas ruidosas, skills de nuestro stack y un flujo para tareas grandes que delega en GSD. Objetivo medido: −60 % de tokens por tarea.
+Arnés de Claude Code del equipo web. Te da: triaje automático de tareas (S/M/L) sin preguntas ni prompts de permiso en tareas pequeñas y medianas, recorte de salidas ruidosas, skills de nuestro stack y un flujo para tareas grandes por hitos. Objetivo medido: −60 % de tokens por tarea.
 
 ## Requisitos
 
 - Claude Code ≥ 2.1.295 (`claude --version`), Linux, macOS o **WSL2**. Windows nativo también, pero sin sandbox (`/lf:setup --windows`, `jq` con `winget install jqlang.jq`).
-- `jq` y `node` ≥ 22 (los hooks `bash-gate` y `trim-output` y la poda de GSD lo usan). En Linux/WSL2, `bubblewrap` y `socat` (el instalador te da el comando `sudo` si faltan).
+- `jq` y `node` ≥ 22 (los hooks `bash-gate` y `trim-output` lo usan). En Linux/WSL2, `bubblewrap` y `socat` (el instalador te da el comando `sudo` si faltan).
 - No hace falta clonar el repo ni tener credenciales de Git: el marketplace es público (`Lf-SergioDominguez/lf-holder`).
-- Opcional: GSD (`~/.claude/gsd-core`) si lo usas; el instalador lo recorta sin desinstalarlo.
+- Si tenías GSD instalado, el arnés ya no lo usa; puedes desinstalarlo o dejarlo, no interfiere con el flujo.
 
 ## Instalación (10 minutos)
 
@@ -19,13 +19,13 @@ Dentro de Claude Code (CLI o extensión de VS Code), en cualquier proyecto:
 /lf:setup
 ```
 
-Al abrir una sesión nueva tras instalar el plugin verás el aviso «Arnés LF sin configurar: ejecuta /lf:setup»: es normal. `/lf:setup` hace primero una simulación (`--dry-run`) y resume qué cambiaría; después ejecuta el instalador de verdad (CLAUDE.md global, settings, poda de GSD) con backup en `~/.claude/backups/`. Como escribe en `~/.claude`, que está protegido, se ejecuta fuera del sandbox y Claude te pide permiso. Antes de la simulación te guía con una pregunta de multiselección sobre lo opcional (sin marcar nada, solo se aplica la base: dependencias, CLAUDE.md y settings): **taste-skill** (diseño anti-slop; más potente y configurable que `frontend-design`, pero más pesada; el inspector necesita Node 22+ y Chrome/Edge/Chromium) y la **poda de GSD** (solo si GSD está instalado). Argumentos opcionales: `/lf:setup --with-taste` (lo activa sin preguntar), `/lf:setup --only=settings,claude-md` (sin guía), `/lf:setup --rollback`. Para quitar taste-skill: `/plugin uninstall taste-skill@taste-skill`.
+Al abrir una sesión nueva tras instalar el plugin verás el aviso «Arnés LF sin configurar: ejecuta /lf:setup»: es normal. `/lf:setup` hace primero una simulación (`--dry-run`) y resume qué cambiaría; después ejecuta el instalador de verdad (CLAUDE.md global, settings) con backup en `~/.claude/backups/`. Como escribe en `~/.claude`, que está protegido, se ejecuta fuera del sandbox y Claude te pide permiso. Antes de la simulación te guía con una pregunta de multiselección sobre lo opcional (sin marcar nada, solo se aplica la base: dependencias, CLAUDE.md y settings): **taste-skill** (diseño anti-slop; más potente y configurable que `frontend-design`, pero más pesada; el inspector necesita Node 22+ y Chrome/Edge/Chromium). Argumentos opcionales: `/lf:setup --with-taste` (lo activa sin preguntar), `/lf:setup --only=settings,claude-md` (sin guía), `/lf:setup --rollback`. Para quitar taste-skill: `/plugin uninstall taste-skill@taste-skill`.
 
 La base incluye la skill **Modern Web Guidance** de Google (`modern-web-guidance@googlechrome`), con más de 200 guías actualizadas de HTML, CSS, JS de cliente, Core Web Vitals, accesibilidad y seguridad, con datos de Baseline. Claude Code la descarga al abrir sesión y la actualiza solo (`autoUpdate`); las guías salen siempre de `npx modern-web-guidance@latest`. No tienes que invocarla ni aprender sus comandos: el arnés la consulta solo cuando tocas UI o JS de cliente, y al final te indica qué guías ha aplicado. Pide «moderniza este proyecto» o «audita los patrones legacy de `src/`» y lanza su escaneo. Fija el objetivo de navegadores de cada proyecto en la sección «Navegadores» de su `CLAUDE.md`; si no lo fijas, se aplica Baseline Widely available. Requiere Node.js 22 o superior. El arnés desactiva su telemetría hacia Google con `DISABLE_TELEMETRY=1`. Para desactivarla: `/plugin disable modern-web-guidance@googlechrome`.
 
 Si faltan `bubblewrap` y `socat`, `sudo` no puede pedirte la contraseña desde Claude: te muestra `sudo apt-get install -y bubblewrap socat` para que lo ejecutes tú con `!` o en un terminal.
 
-Reinicia la sesión. Si usas GSD y el instalador no pudo aplicar el perfil solo, ejecuta una vez `/gsd-surface profile core`.
+Reinicia la sesión.
 
 ### Comprobar que funciona
 
@@ -33,7 +33,7 @@ Reinicia la sesión. Si usas GSD y el instalador no pudo aplicar el perfil solo,
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | `/sandbox`             | Sin pestaña «Dependencies»; modo auto-allow                                                                           |
 | `/permissions`         | `defaultMode: acceptEdits`, reglas allow/ask/deny cargadas                                                            |
-| `/hooks`               | `lf` (bash-gate, trim-output, guard-read, gsd-one-per-session, log-permission, session-start, precompact), `gsd-write-guard` |
+| `/hooks`               | `lf` (bash-gate, trim-output, guard-read, log-permission, session-start, precompact) |
 | `/context`             | CLAUDE.md global visible (<3K tokens); listado de skills corto (las skills `lf` con `paths` no aparecen hasta tocar ficheros) |
 | Pide un cambio pequeño | Empieza con `Triaje: S — …` y termina sin haberte preguntado nada                                                     |
 
@@ -61,7 +61,7 @@ Todo lo que instala el arnés (settings globales, CLAUDE.md, plugin, hooks) es c
 - Describe la tarea. Claude la clasifica solo:
   - **S** (bug, texto, estilo, ≤3 ficheros): implementa, verifica y te entrega. Cero preguntas.
   - **M** (endpoint nuevo, componente, entidad + migración): escribe un contrato de 15 líneas, sigue solo, revisa con `lf:reviewer` y entrega con sus asunciones. Corriges después.
-  - **L** (módulo, feature grande): `lf:l` te hace ≤5 preguntas de una vez, escribe `.planning/ARCHITECTURE.md`, pide un OK y ejecuta por hitos con GSD.
+  - **L** (módulo, feature grande): `lf:l` te hace ≤5 preguntas de una vez, escribe `.planning/ARCHITECTURE.md`, pide un OK y ejecuta por hitos con `lf:executor` (un hito por sesión, `/clear` entre medias; el estado queda en `.planning/STATE.md`).
 - Para discutir la clasificación antes: `/lf:triage <tarea>`. Para forzarla: `/lf:s`, `/lf:m`, `/lf:l`.
 - Modelo: `claude-sonnet` (el más nuevo) por defecto; Haiku para todo subagente ruidoso. Para planificar una L: `/model claude-opus` (el más nuevo) y vuelve a Sonnet para ejecutar. **Fable no se usa en ningún flujo.** Detalle: [MODELOS.md](../plugins/lf/docs/MODELOS.md).
 - Atajos: `/lf:opusplan` (Opus planifica y Sonnet ejecuta), `/lf:ultracode` (sesión entera a xhigh y multiagente); para razonar a fondo en un solo turno escribe `ultrathink` en el prompt.
@@ -71,7 +71,7 @@ Todo lo que instala el arnés (settings globales, CLAUDE.md, plugin, hooks) es c
 
 ## Por proyecto
 
-Copia `project-templates/CLAUDE.md` al repo del proyecto y rellena **solo** cómo se ejecuta (local vs `docker compose exec`), mapa rápido y zonas delicadas (≤50 líneas). Si necesitas permisos extra, `project-templates/settings.local.json` → `<repo>/.claude/settings.local.json`. Para tareas L con GSD, `lf:l` crea o ajusta `.planning/config.json` con `plugins/lf/scripts/gsd-lean.sh` (plantilla en `plugins/lf/templates/planning-config.json`). En un proyecto con GSD ya en marcha, lanza el script tú mismo desde su raíz. Con GSD, una orden por sesión y `/clear` entre medias.
+Copia `project-templates/CLAUDE.md` al repo del proyecto y rellena **solo** cómo se ejecuta (local vs `docker compose exec`), mapa rápido y zonas delicadas (≤50 líneas). Si necesitas permisos extra, `project-templates/settings.local.json` → `<repo>/.claude/settings.local.json`.
 
 ## Actualizar
 
@@ -82,7 +82,6 @@ Copia `project-templates/CLAUDE.md` al repo del proyecto y rellena **solo** cóm
 
 Al iniciar sesión, `session-start` compara la marca de versión de tu `~/.claude/CLAUDE.md` con la del plugin y te avisa («Arnés LF actualizado a X: ejecuta /lf:setup») si no coinciden.
 También avisa si hay un `handoff.md` en el proyecto («léelo primero») y si hay ≥5 sesiones (o ≥7 días) sin consolidar: ejecuta `/lf:dream`.
-Tras actualizar GSD (`/gsd-update`) ejecuta `/lf:setup --only=gsd`: GSD vuelve a registrar sus hooks y `session-start` te avisará al inicio de sesión.
 
 ## Medir tu consumo
 
@@ -96,7 +95,6 @@ Agrega tus transcripts locales (nada sale de tu máquina) y te da coste estimado
 
 - `/lf:setup --rollback` restaura el último backup de `settings.json` y `CLAUDE.md` (en `~/.claude/backups/`).
 - `/plugin uninstall lf@lefebvriano-holder`.
-- GSD: `/gsd-surface reset`.
 - Kill-switch de todos los hooks: `"disableAllHooks": true` en `~/.claude/settings.json`.
 
 ## Problemas frecuentes
@@ -104,5 +102,4 @@ Agrega tus transcripts locales (nada sale de tu máquina) y te da coste estimado
 - **Sigue preguntando permisos**: mira `~/.claude/lf-metrics/permissions.tsv` para ver qué comando lo provocó y consulta [PERMISOS.md](../plugins/lf/docs/PERMISOS.md); si es legítimo, añádelo a `settings.local.json` del proyecto (o propón el cambio global en un PR). `LF_GATE=shadow` hace que `bash-gate` solo registre sin decidir.
 - **`/hooks` muestra reglas antiguas en `settings.json`**: `/lf:setup --only=settings` las migra.
 - **El sandbox bloquea Docker/MySQL**: ya están en `sandbox.excludedCommands`; si usas otro cliente, añádelo ahí.
-- **Aviso «GSD ha re-registrado N hooks»**: `/lf:setup --only=gsd`.
 - **Aviso «Arnés LF sin configurar» o «actualizado a X»**: `/lf:setup`.

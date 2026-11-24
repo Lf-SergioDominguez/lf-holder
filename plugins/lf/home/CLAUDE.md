@@ -22,7 +22,7 @@ Antes de tocar nada: `Triaje: S|M|L — <motivo en 5 palabras>`.
 
 - **S**: localizo con Grep/Glob, implemento, verifico con el comando más barato (`--filter`, `php -l`, `tsc --noEmit`). Entrego en 3–6 líneas: ficheros, cómo probarlo, `Hecho cuando: <comprobación ejecutable>` y lo no comprobado. Sin preguntas ni commit; si falta un dato inferible, lo asumo y lo digo.
 - **M**: contrato ≤15 líneas (entidades/campos, endpoints o props/emits, migración sí/no, ficheros, `Hecho cuando:`). Decisión con impacto real → `Asumo: X` y sigo. Implemento por capas (dato → servicio → API → vista), verifico cada una con `lf:verbose-runner`, reviso con `lf:reviewer` y entrego con asunciones y lo no comprobado.
-- **L**: skill `lf:l` (entrevista ≤5 preguntas, `.planning/ARCHITECTURE.md` con Opus, un OK, hitos con GSD en Sonnet). **Una orden GSD por sesión**, `/clear` entre medias. No invoco `gsd-*` fuera de L.
+- **L**: skill `lf:l` (entrevista ≤5 preguntas, `.planning/ARCHITECTURE.md` con Opus, un OK, hitos con `lf:executor` en Sonnet). **Un hito por sesión**, `/clear` entre medias. GSD no se usa.
 
 ## Cómo pedir permisos sin fricción
 
@@ -40,7 +40,7 @@ Antes de tocar nada: `Triaje: S|M|L — <motivo en 5 palabras>`.
 - Memoria: nota predictiva («lo que la próxima sesión necesitará»), un hecho por nota, sin documentos de análisis no pedidos. La consolida `/lf:dream` (manual; SessionStart avisa si toca).
 - Salidas largas (tests, builds, `bin/console`, logs, `composer`, `npm install`) → `lf:verbose-runner`. Nunca `cat` de ficheros grandes (Read con offset/limit o `grep -n`), `find` sin `-maxdepth`, ni leer `vendor/`, `node_modules/`, `var/`, `dist/`, `.git/` ni logs enteros.
 - Un cambio, una verificación: no relanzo la suite completa tras un cambio acotado.
-- Subagentes solo `lf:verbose-runner`, `lf:reviewer`, `Explore`, `lf:planner`/`lf:executor` (L) y los de GSD en L; agent teams no. Subagente nuevo → `model:` explícito.
+- Subagentes solo `lf:verbose-runner`, `lf:reviewer`, `Explore`, `lf:planner`/`lf:executor` (L); agent teams no. Subagente nuevo → `model:` explícito.
 - MCP solo si la tarea lo necesita. Nada de basura en el repo: logs y temporales a `${TMPDIR:-/tmp}`.
 - Web moderna (HTML/CSS/JS de cliente, también Twig y temas WP): antes de un patrón de UI o capacidad de plataforma consulto `npx -y modern-web-guidance@latest search "<consulta>"`. Navegadores: `.mwgrc`; si no, el CLAUDE.md del proyecto; si no, Baseline Widely available.
 - UI, estilos o documentos con marca: leo antes `~/.claude/lf/house-style/INDEX.md` si existe (house style corporativo, tokens `--lf-*`) y lo aplico; manda sobre cualquier skill de diseño genérica. Se cambia con `/lf:house-style <ruta>`.
@@ -55,7 +55,7 @@ Antes de tocar nada: `Triaje: S|M|L — <motivo en 5 palabras>`.
 
 ## Git y alcance
 
-Commit y push los decide el usuario: solo si me los pide, y ambos están en `ask`. Conventional Commits en inglés, atómicos. No hago PRs, `--amend` sobre lo publicado, `reset --hard`, `checkout -- .`, `clean`, ni piso main ni borro ramas. En L, GSD comitea por tarea: si se rechaza un commit, sigo sin commitear y lo anoto en el resumen del hito. `planning.commit_docs` a `false`.
+Commit y push los decide el usuario: solo si me los pide, y ambos están en `ask`. Conventional Commits en inglés, atómicos. No hago PRs, `--amend` sobre lo publicado, `reset --hard`, `checkout -- .`, `clean`, ni piso main ni borro ramas. En L tampoco hay commits automáticos: el resumen de cada hito propone el mensaje.
 No generalizo una petición ni «mejoro» fuera del alcance: si nombra ficheros o funciones, voy a esos.
 
 ## Índice

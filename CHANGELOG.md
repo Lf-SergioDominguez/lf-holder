@@ -4,6 +4,16 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+### Eliminado
+
+- GSD sale del flujo del arnés (ADR 0024, sustituye a la 0014): hook `gsd-one-per-session.sh`, scripts `gsd-lean.sh`, `prune-gsd-hooks.sh` y `gsd-surface.cjs`, plantilla `planning-config.json`, paso `gsd` de `install.sh` (`--only=gsd` se ignora con aviso), `optional.gsd` de `config.json` y los avisos de GSD de `session-start.sh`. No se desinstala GSD a nadie.
+
+### Cambiado
+
+- `lf:l` ejecuta los hitos sin GSD: un hito por sesión con `lf:planner` (solo si hay zonas grises), `lf:executor` en Sonnet y `lf:reviewer`, con el estado en `.planning/STATE.md`. Sin `config.json` ni `PROJECT.md`. En L tampoco hay commits automáticos.
+- `/lf:setup` ya no ofrece la poda de GSD.
+- `docs/VISION.md`: nuevo hito H7 (auditoría de quality gates).
+
 ### Corregido
 
 - El autocompact se cruzaba con el handoff: Claude Code compacta hacia `autoCompactWindow − ~33K`, no al 100 % de la ventana, y un proyecto con `autoCompactWindow: 200000` compactaba a ~167K. `autoCompactWindow` pasa a 253000 (el autocompact salta hacia los 220K) y la statusline mide sobre el límite de trabajo de 200K (amarillo 75 %, rojo 80 %); lee el valor efectivo (proyecto local > proyecto > usuario) y, si fija una ventana menor, mide sobre ese umbral real. `session-start` avisa si el valor efectivo es <253000 (ADR 0021, addenda).

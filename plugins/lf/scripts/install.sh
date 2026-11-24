@@ -5,7 +5,6 @@
 #   claude-md  ~/.claude/CLAUDE.md global (política S/M/L) y docs en ~/.claude/lf/docs/ (las enlaza su índice)
 #   settings   fusiona home/settings.lf.json en ~/.claude/settings.json (modelo, permisos, sandbox, plugins);
 #              antes retira lo que el arnés puso en versiones anteriores (manifiesto ~/.claude/lf/managed.json)
-#   gsd        si GSD está instalado: poda sus hooks (deja write-guard), perfil `core`, quita agentes sueltos
 #   config    perfil de equipo (profiles/<nombre>.md → ~/.claude/lf/profiles/) y elecciones en ~/.claude/lf/config.json
 #   taste     OPCIONAL (no va por defecto; actívalo con --with-taste o --only=taste): habilita el plugin
 #              taste-skill (Leonxlnx/taste-skill, MIT) para diseño anti-slop; Claude Code lo descarga al abrir sesión
@@ -15,7 +14,7 @@
 #   /plugin install lf@lefebvriano-holder
 #   /lf:setup   (ejecuta este script desde la caché del plugin)
 #
-# Uso: plugins/lf/scripts/install.sh [--only=deps,claude-md,settings,gsd,config,taste] [--with-taste] [--profile=<nombre>] [--telemetry=on|off] [--telemetry-every=weekly|month-ends|monthly] [--dry-run] [--no-sandbox] [--windows] [--yes] [--rollback]
+# Uso: plugins/lf/scripts/install.sh [--only=deps,claude-md,settings,config,taste] [--with-taste] [--profile=<nombre>] [--telemetry=on|off] [--telemetry-every=weekly|month-ends|monthly] [--dry-run] [--no-sandbox] [--windows] [--yes] [--rollback]
 #   --with-taste  añade el paso taste a los pasos por defecto
 #   --profile     perfil de equipo para el paso config (por defecto el ya guardado, o generic)
 #   --telemetry   guarda la elección de telemetría opt-in en config.json (por defecto la ya guardada, o off)
@@ -23,7 +22,7 @@
 #   --dry-run     muestra qué haría (diffs) sin tocar nada
 #   --no-sandbox  no instala deps ni activa sandbox; usa permissions.defaultMode=dontAsk y los allows de home/settings.nosandbox.json
 #   --windows     permite instalar en Windows nativo (Git Bash); implica --no-sandbox
-#   --yes         no pide confirmación en los pasos gsd/taste (no activa taste-skill por sí solo)
+#   --yes         no pide confirmación en el paso taste (no activa taste-skill por sí solo)
 #   --rollback    restaura el último backup de settings.json y CLAUDE.md y sale
 set -euo pipefail
 
@@ -31,7 +30,7 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"   # raíz del plugin (plugins/lf, o su 
 CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 SETTINGS="$CLAUDE_DIR/settings.json"
 BACKUPS="$CLAUDE_DIR/backups"
-ONLY="deps,claude-md,settings,gsd,config"
+ONLY="deps,claude-md,settings,config"
 PROFILE=""; TELEMETRY=""; EVERY=""
 WITH_TASTE=0
 DRY=0; NOSANDBOX=0; WINDOWS=0; YES=0; ROLLBACK=0
@@ -53,6 +52,7 @@ for arg in "$@"; do
   esac
 done
 [ "$WITH_TASTE" -eq 1 ] && ONLY="$ONLY,taste"
+case ",$ONLY," in *,gsd,*) echo "[lf] el paso gsd ya no existe (ADR 0024); se ignora" >&2 ;; esac
 case "$TELEMETRY" in ""|on|off) ;; *) echo "--telemetry admite on u off, no «$TELEMETRY»" >&2; exit 1 ;; esac
 case "$EVERY" in ""|weekly|month-ends|monthly) ;; *) echo "--telemetry-every admite weekly, month-ends o monthly, no «$EVERY»" >&2; exit 1 ;; esac
 case "$PROFILE" in *[!a-z0-9-]*) echo "--profile solo admite minúsculas, dígitos y guiones" >&2; exit 1 ;; esac
@@ -226,42 +226,6 @@ if step settings; then
   fi
 fi
 
-# ---------------------------------------------------------------- GSD
-if step gsd; then
-  if [ -d "$CLAUDE_DIR/gsd-core" ]; then
-    if [ "$YES" -eq 1 ] || confirm "GSD detectado. ¿Podar hooks (todos salvo write-guard), aplicar perfil 'core' y retirar agentes sueltos?"; then
-      args=(--target "$SETTINGS"); [ "$DRY" -eq 1 ] && args+=(--dry-run)
-      bash "$ROOT/scripts/prune-gsd-hooks.sh" "${args[@]}"
-
-      # perfil core: replica /gsd-surface profile core con los módulos internos de GSD (scripts/gsd-surface.cjs)
-      profile=$(jq -r '.baseProfile // empty' "$CLAUDE_DIR/.gsd-surface.json" 2>/dev/null || true)
-      if [ "$profile" = "core" ]; then
-        log "GSD ya en perfil core"
-      elif [ "$DRY" -eq 1 ]; then
-        echo "  (dry-run) node $ROOT/scripts/gsd-surface.cjs core --config-dir $CLAUDE_DIR"
-      elif command -v node >/dev/null && node "$ROOT/scripts/gsd-surface.cjs" core --config-dir "$CLAUDE_DIR"; then
-        :
-      else
-        warn "GSD: aplica el perfil desde una sesión de Claude Code con: /gsd-surface profile core"
-      fi
-
-      # agentes sueltos que cargan descripción en cada turno y ya no se usan
-      for f in "$CLAUDE_DIR/agents/_template.md" "$CLAUDE_DIR/agents/seo-wpo-auditor.md"; do
-        if [ -f "$f" ]; then
-          run mkdir -p "$BACKUPS/agents"
-          run mv "$f" "$BACKUPS/agents/$(basename "$f").$(date +%Y%m%d-%H%M%S)"
-          log "retirado $(basename "$f") → $BACKUPS/agents/ (el auditor SEO vive ahora en /lf:seo-audit)"
-        fi
-      done
-      if [ -d "$CLAUDE_DIR/agents/knowledge/seo-wpo-auditor" ]; then
-        run mv "$CLAUDE_DIR/agents/knowledge/seo-wpo-auditor" "$BACKUPS/agents/knowledge-seo-wpo-auditor.$(date +%Y%m%d-%H%M%S)"
-      fi
-    fi
-  else
-    log "GSD no está instalado; nada que podar"
-  fi
-fi
-
 # ---------------------------------------------------------------- taste-skill
 if step taste; then
   if [ "$YES" -eq 1 ] || confirm "¿Habilitar taste-skill (diseño anti-slop; más pesada que frontend-design)?"; then
@@ -285,10 +249,9 @@ if step config; then
   case "${TELEMETRY:-$(jq -r 'if .telemetry == true then "on" else "off" end' <<<"$cur")}" in on) tel=true ;; *) tel=false ;; esac
   every="${EVERY:-$(jq -r '.telemetryEvery // "weekly"' <<<"$cur")}"
   step taste && taste=true || taste=$(jq '.optional.taste // false' <<<"$cur")
-  step gsd && [ -d "$CLAUDE_DIR/gsd-core" ] && gsd=true || gsd=$(jq '.optional.gsd // false' <<<"$cur")
-  new=$(jq -n --argjson cur "$cur" --arg p "$prof" --argjson t "$tel" --arg every "$every" --argjson taste "$taste" --argjson gsd "$gsd" \
+  new=$(jq -n --argjson cur "$cur" --arg p "$prof" --argjson t "$tel" --arg every "$every" --argjson taste "$taste" \
         --argjson win "$([ "$IS_WINDOWS" -eq 1 ] && echo true || echo false)" \
-        '$cur + {version: 1, profile: $p, telemetry: $t, telemetryEvery: $every, windows: $win, optional: {taste: $taste, gsd: $gsd}}')
+        '$cur + {version: 1, profile: $p, telemetry: $t, telemetryEvery: $every, windows: $win, optional: {taste: $taste}}')
   if [ "$DRY" -eq 1 ]; then
     echo "  (dry-run) cp $ROOT/profiles/*.md $CLAUDE_DIR/lf/profiles/"
     echo "  (dry-run) escribir en $cfg: $new"

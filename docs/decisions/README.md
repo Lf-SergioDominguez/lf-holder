@@ -26,7 +26,7 @@ Alternativa descartada: …
 | [0011](0011-windows-nativo-como-modo-sin-sandbox.md) | 2026-10-13 | Windows nativo como modo sin sandbox (v0.5.2) |
 | [0012](0012-ponytail-destilado-graphify-descartado.md) | 2026-10-15 | Ponytail destilado, Graphify descartado (v0.6.0) |
 | [0013](0013-haiku-5-5.md) | 2026-10-26 | Haiku 5.5 |
-| [0014](0014-gsd-una-orden-por-sesion-y-planner.md) | 2026-11-05 | GSD: una orden por sesión y planner en Sonnet |
+| [0014](0014-gsd-una-orden-por-sesion-y-planner.md) | 2026-11-05 | GSD: una orden por sesión y planner en Sonnet (sustituida por 0024) |
 | [0015](0015-modern-web-guidance-de-google-como-plugin.md) | 2026-11-17 | Modern Web Guidance de Google como plugin por defecto |
 | [0016](0016-retirada-de-rtk.md) | 2026-11-17 | Retirada de RTK |
 | [0017](0017-bash-gate-y-permisos-por-capas.md) | 2026-11-17 | `bash-gate` y permisos por capas |
@@ -37,3 +37,4 @@ Alternativa descartada: …
 Las decisiones de 0001–0015 conservan el texto original; las cifras de coste son de la fecha indicada.
 | [0021](0021-margen-de-autocompact-y-statusline-de-contexto.md) | 2026-11-17 | Margen de autocompact (salta hacia 220K) y statusline de contexto |
 | [0022](0022-setup-guiado-y-perfiles.md) | 2026-11-23 | `/lf:setup` guiado y perfiles de equipo |
+| [0024](0024-gsd-fuera-del-flujo.md) | 2026-11-24 | GSD fuera del flujo del arnés |

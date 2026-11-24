@@ -21,16 +21,6 @@
             "timeout": 3
           }
         ]
-      },
-      {
-        "matcher": "Skill",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/gsd-one-per-session.sh\"",
-            "timeout": 3
-          }
-        ]
       }
     ],
     "PostToolUse": [
@@ -73,17 +63,6 @@
           {
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/precompact.sh\"",
-            "timeout": 3
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/gsd-one-per-session.sh\"",
             "timeout": 3
           }
         ]

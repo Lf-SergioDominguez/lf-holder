@@ -3,14 +3,11 @@
 # Silencioso salvo en estos casos (una línea cada uno):
 #   1. ~/.claude/CLAUDE.md no lleva la marca `<!-- lf-harness X.Y.Z -->` en la línea 1 → sin configurar.
 #   2. La marca no coincide con la versión del plugin → actualizado, falta /lf:setup.
-#   3. GSD ha re-registrado hooks gsd-* distintos de write-guard en settings.json.
-#   4. El proyecto tiene .planning/config.json de GSD en modo caro (auto_advance, plan-checker
-#      o perfil distinto de budget).
-#   5. settings.json conserva allows amplios de versiones antiguas (o el hook de RTK) → /lf:setup.
-#   6. Claude Code es anterior a la versión mínima que declara el arnés.
-#   6b. El autoCompactWindow efectivo (proyecto o usuario) es <253000.
-#   7. Existe handoff.md en el cwd → léelo primero.
-#   8. Hay ≥5 sesiones (o ≥7 días con alguna) sin consolidar en este proyecto → /lf:dream.
+#   3. settings.json conserva allows amplios de versiones antiguas (o el hook de RTK) → /lf:setup.
+#   4. Claude Code es anterior a la versión mínima que declara el arnés.
+#   4b. El autoCompactWindow efectivo (proyecto o usuario) es <253000.
+#   5. Existe handoff.md en el cwd → léelo primero.
+#   6. Hay ≥5 sesiones (o ≥7 días con alguna) sin consolidar en este proyecto → /lf:dream.
 set -uo pipefail
 MIN_CLAUDE="2.1.295"
 dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
@@ -33,20 +30,11 @@ if [ -n "$ver" ]; then
 fi
 
 if [ -f "$settings" ]; then
-  n=$(jq -r '[.hooks // {} | .[][]? | .hooks[]? | .command // "" | select(test("/gsd-") and (test("gsd-write-guard")|not))] | length' "$settings" 2>/dev/null || echo 0)
-  if [ "${n:-0}" -gt 0 ]; then
-    echo "lf: GSD ha re-registrado $n hook(s) en settings.json; ejecuta /lf:setup --only=gsd para volver a podarlos."
-  fi
   old=$(jq -r '[ (.permissions.allow // [])[] | select(. as $a | ["Bash(bin/console *)","Bash(wp *)","Bash(npx *)","Bash(node *)","Bash(php -r *)","Bash(vendor/bin/*)","Bash(rtk *)"] | index($a)) ]
                + [ .hooks // {} | .[][]? | .hooks[]? | .command // "" | select(test("rtk hook")) ] | length' "$settings" 2>/dev/null || echo 0)
   if [ "${old:-0}" -gt 0 ]; then
     echo "lf: settings.json conserva $old regla(s) antigua(s) (allows amplios o RTK); ejecuta /lf:setup --only=settings para migrarlas."
   fi
-fi
-
-cfg=".planning/config.json"
-if [ -f "$cfg" ] && jq -e '.workflow.auto_advance == true or .workflow.plan_check != false or (.model_profile // "balanced") != "budget"' "$cfg" >/dev/null 2>&1; then
-  echo "lf: $cfg de GSD en modo caro (auto_advance, plan-checker o planner en Opus); ajústalo con: bash \"$root/scripts/gsd-lean.sh\""
 fi
 
 # autoCompactWindow efectivo (proyecto local > proyecto > usuario) por debajo de 253000: el autocompact salta

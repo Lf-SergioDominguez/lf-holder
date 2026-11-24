@@ -34,5 +34,5 @@ Plazos orientativos: acuse de recibo en 5 días laborables y valoración inicial
 ## Fuera de alcance
 
 - Vulnerabilidades de Claude Code, del modelo o de la API: repórtalas a Anthropic según su política de divulgación responsable.
-- Plugins y herramientas de terceros que el arnés instala o recomienda (GSD, modern-web-guidance, taste-skill): repórtalas a sus mantenedores. Sí nos interesa si el arnés los configura de forma insegura.
+- Plugins y herramientas de terceros que el arnés instala o recomienda (modern-web-guidance, taste-skill): repórtalas a sus mantenedores. Sí nos interesa si el arnés los configura de forma insegura.
 - Comportamientos que requieren que el propio usuario desactive las protecciones (`LF_GATE=off`, `--no-sandbox`, `bypassPermissions`).

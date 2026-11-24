@@ -193,6 +193,9 @@ hcheck "$(jq -c '[.profile, .telemetry, .telemetryEvery]' "$mtmp/vacio/lf/config
 HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --profile=nope >/dev/null 2>&1; hcheck "$?" "1" "install config: perfil desconocido falla"
 HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --telemetry=si >/dev/null 2>&1; hcheck "$?" "1" "install config: --telemetry inválido falla"
 HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --telemetry-every=daily >/dev/null 2>&1; hcheck "$?" "1" "install config: --telemetry-every inválido falla"
+jq '.optional.gsd = true' "$cc/lf/config.json" > "$mtmp/c.json" && cp "$mtmp/c.json" "$cc/lf/config.json"
+HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config,gsd >/dev/null 2>&1
+hcheck "$(jq -c '.optional | keys' "$cc/lf/config.json")" '["taste"]' "install config: elimina optional.gsd previo"
 rm -rf "$mtmp"
 
 echo; echo "log-permission.sh:"
@@ -205,55 +208,13 @@ lp=$(awk -F'\t' 'NR==1{a=NF} NR==2{b=$6":"$7} END{print NR":"a":"b}' "$tmp/lf-me
 if [ "$lp" = "2:7:plan:1" ]; then ok=$((ok+1)); echo "  ok   7 columnas (modo, sandbox) y sin AskUserQuestion/ExitPlanMode"; else fail=$((fail+1)); echo "  FAIL columnas/filtro ($lp)"; fi
 rm -rf "$tmp"
 
-echo; echo "gsd-one-per-session.sh:"
-GHOOK="$ROOT/plugins/lf/hooks/gsd-one-per-session.sh"
-gtmp=$(mktemp -d)
-gsd() {  # gsd <esperado block|deny|pass> <evento> <sesión> <orden o skill>
-  local expect="$1" ev="$2" sid="$3" what="$4" in got out
-  if [ "$ev" = "UserPromptSubmit" ]; then in=$(jq -cn --arg s "$sid" --arg p "$what" '{hook_event_name:"UserPromptSubmit",session_id:$s,prompt:$p}')
-  else in=$(jq -cn --arg s "$sid" --arg k "$what" '{hook_event_name:"PreToolUse",session_id:$s,tool_name:"Skill",tool_input:{skill:$k}}'); fi
-  out=$(printf '%s' "$in" | TMPDIR="$gtmp" bash "$GHOOK" 2>/dev/null)
-  got=$(printf '%s' "$out" | jq -r 'if .decision == "block" then "block" elif .hookSpecificOutput.permissionDecision == "deny" then "deny" else "pass" end' 2>/dev/null); [ -n "$got" ] || got=pass
-  if [ "$got" = "$expect" ]; then ok=$((ok+1)); printf '  ok   %-5s %s %s\n' "$expect" "$sid" "$what"
-  else fail=$((fail+1)); printf '  FAIL %-5s (got %s) %s %s\n' "$expect" "$got" "$sid" "$what"; fi
-}
-gsd pass  UserPromptSubmit s1 "/gsd-plan-phase 3"
-gsd pass  PreToolUse       s1 "gsd-progress"
-gsd deny  PreToolUse       s1 "gsd-execute-phase"
-gsd block UserPromptSubmit s1 "/gsd-execute-phase 3 --wave 1"
-gsd pass  UserPromptSubmit s1 "explícame el plan"
-gsd pass  PreToolUse       s2 "gsd:execute-phase"
-gsd deny  PreToolUse       s2 "gsd-discuss-phase"
-gsd pass  UserPromptSubmit s3 "/gsd-help"
-gsd pass  PreToolUse       s3 "lf:l"
-LF_GSD_ONE_PER_SESSION=0 gsd pass PreToolUse s2 "gsd-plan-phase"
-gsd pass  PreToolUse       s4 "get-shit-done:gsd-plan-phase"
-gsd deny  PreToolUse       s4 "gsd-execute-phase "
-gsd pass  UserPromptSubmit s5 $'\n  /gsd-plan-phase 2'
-gsd block UserPromptSubmit s5 $'\n/gsd-execute-phase 2'
-gsd pass  PreToolUse       "../x" "gsd-plan-phase"
-rm -rf "$gtmp"
-
-echo; echo "gsd-lean.sh y session-start.sh (config de GSD):"
-LEAN="$ROOT/plugins/lf/scripts/gsd-lean.sh"; DRIFT="$ROOT/plugins/lf/hooks/session-start.sh"
-ltmp=$(mktemp -d); p="$ltmp/con espacio"; mkdir -p "$p/.planning"
+echo; echo "session-start.sh (autoCompactWindow):"
+DRIFT="$ROOT/plugins/lf/hooks/session-start.sh"
+ltmp=$(mktemp -d); p="$ltmp/con espacio"; mkdir -p "$p/.claude"
 lcheck() { if [ "$1" = "$2" ]; then ok=$((ok+1)); echo "  ok   $3"; else fail=$((fail+1)); echo "  FAIL $3 (got $1)"; fi; }
-drift() { (cd "$p" && CLAUDE_CONFIG_DIR="$ltmp/none" bash "$DRIFT" | grep -c "modo caro"); }
-echo '{"mode":"yolo","model_profile":"balanced","parallelization":true,"workflow":{"auto_advance":true,"plan_check":true}}' > "$p/.planning/config.json"
-lcheck "$(drift)" 1 "session-start avisa con config cara"
-bash "$LEAN" "$p" >/dev/null
-lcheck "$(jq -c '[.mode, .model_profile, .parallelization, .workflow.auto_advance, .workflow.plan_check]' "$p/.planning/config.json")" '["yolo","budget",true,false,false]' "gsd-lean impone coste y conserva el resto"
-lcheck "$(bash "$LEAN" "$p" | grep -c 'ya estaba')" 1 "gsd-lean idempotente"
-lcheck "$(drift)" 0 "session-start calla con config barata"
 acwc() { echo "{\"autoCompactWindow\":$1}" > "$p/.claude/settings.json"; (cd "$p" && CLAUDE_CONFIG_DIR="$ltmp/none" bash "$DRIFT" | grep -c "autoCompactWindow efectivo"); }
-mkdir -p "$p/.claude"
 lcheck "$(acwc 220000)" 1 "session-start avisa con autoCompactWindow 220000 en el proyecto"
 lcheck "$(acwc 253000)" 0 "session-start calla con autoCompactWindow 253000"
-rm -f "$p/.claude/settings.json"
-lcheck "$(jq '[.. | nulls] | length' "$p/.planning/config.json")" 0 "gsd-lean no escribe null"
-echo '[]' > "$p/.planning/config.json"; q="$ltmp/q"
-bash "$LEAN" "$p" "$q" >/dev/null 2>&1; rc=$?
-lcheck "$rc:$([ -f "$q/.planning/config.json" ] && echo creado)" "1:creado" "gsd-lean: JSON no objeto → exit 1 y sigue con el resto"
 rm -rf "$ltmp"
 
 echo; echo "bash-gate.sh (on por defecto, shadow, off):"

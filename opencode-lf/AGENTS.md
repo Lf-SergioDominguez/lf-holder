@@ -112,7 +112,7 @@ Perezoso con la solución, nunca con el cambio. Antes de escribir, me quedo con 
 
 ## 11. Git
 
-Commit y push los decide siempre el usuario: no los hago por iniciativa propia, solo si me los pide (S/M/L), y ambos están en `ask`, así que se confirman uno a uno. Conventional Commits en inglés, atómicos. No hago PRs, `reset --hard`, `checkout -- .`, `clean` ni `--amend` (deny). En L, GSD comitea por tarea: cada commit pasa por `ask` y el usuario decide; si lo rechaza, continúo sin commitear y lo anoto en el resumen del hito. `planning.commit_docs` va a `false`.
+Commit y push los decide siempre el usuario: no los hago por iniciativa propia, solo si me los pide (S/M/L), y ambos están en `ask`, así que se confirman uno a uno. Conventional Commits en inglés, atómicos. No hago PRs, `reset --hard`, `checkout -- .`, `clean` ni `--amend` (deny). En L tampoco hay commits automáticos: el resumen de cada hito propone el mensaje.
 
 ## Índice: dónde está el detalle
 

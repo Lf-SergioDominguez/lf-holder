@@ -15,9 +15,9 @@ Los datos (transcripts de un desarrollador, `scripts/measure.sh`): el 97–98 % 
 
 ## Cómo lo resuelve
 
-- **Triaje S/M/L** en una línea antes de tocar nada: S implementa y entrega sin preguntar; M escribe un contrato de ≤15 líneas y sigue; L entrevista una vez, escribe `ARCHITECTURE.md` y ejecuta por hitos con GSD.
+- **Triaje S/M/L** en una línea antes de tocar nada: S implementa y entrega sin preguntar; M escribe un contrato de ≤15 líneas y sigue; L entrevista una vez, escribe `ARCHITECTURE.md` y ejecuta por hitos con `lf:executor`.
 - **Permisos sin fricción**: `acceptEdits` + sandbox de Bash + el hook `bash-gate`, que clasifica cada comando (`allow`/`ask`/`deny`). Commit, push, migraciones y `rm` preguntan; borrados masivos y DDL/DML destructivo están prohibidos. Detalle: [PERMISOS.md](plugins/lf/docs/PERMISOS.md).
-- **Menos contexto fijo**: `CLAUDE.md` global ≤70 líneas, GSD recortado, skills de stack que solo cargan al tocar sus ficheros.
+- **Menos contexto fijo**: `CLAUDE.md` global ≤70 líneas, skills de stack que solo cargan al tocar sus ficheros.
 - **Salidas acotadas**: `trim-output` recorta lo ruidoso y avisa siempre de lo omitido; lo muy verboso va al agente `lf:verbose-runner` (Haiku). `guard-read` impide leer `vendor/`, lockfiles o ficheros enormes enteros.
 - **Sesiones cortas**: nunca compactar; `/clear` al cerrar tarea y `/lf:handoff` al llegar al 75–80 %. Ver [MEMORIA.md](plugins/lf/docs/MEMORIA.md).
 - **Modelos**: solo Sonnet, Opus y Haiku; Opus solo para planificar tareas L. Ver [MODELOS.md](plugins/lf/docs/MODELOS.md).
@@ -32,7 +32,7 @@ Requisitos: Claude Code ≥ 2.1.295, `jq`, `node` ≥ 22 y, en Linux/WSL2, `bubb
 /lf:setup
 ```
 
-`/lf:setup` simula primero (`--dry-run`), hace backup en `~/.claude/backups/` y aplica `CLAUDE.md`, `settings.json` y la poda opcional de GSD. Admite `--only=settings,claude-md` y `--rollback`. Para OpenCode: [opencode-lf/README.md](opencode-lf/README.md).
+`/lf:setup` simula primero (`--dry-run`), hace backup en `~/.claude/backups/` y aplica `CLAUDE.md`, y `settings.json`. Admite `--only=settings,claude-md` y `--rollback`. Para OpenCode: [opencode-lf/README.md](opencode-lf/README.md).
 
 Reinicia y comprueba con `/context` (contexto fijo ~25K), `/hooks`, `/permissions` y `/sandbox`. Guía completa, extensión de VS Code y resolución de problemas: [docs/ONBOARDING.md](docs/ONBOARDING.md).
 

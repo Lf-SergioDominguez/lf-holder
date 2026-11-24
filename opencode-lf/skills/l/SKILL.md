@@ -39,14 +39,12 @@ Escribe `.planning/ARCHITECTURE.md` (≤80 líneas) con:
 La ejecución no se delega a ninguna herramienta externa: los hitos se abren de uno en uno, con el mismo criterio que el flujo M.
 
 1. Escribe `.planning/STATE.md` con los hitos del contrato, su estado (`pendiente` / `hecho` / `bloqueado`) y el siguiente hito. Sobrescribe el fichero, no lo acumules con fecha.
-2. Si no existe `.planning/config.json`, copia la plantilla del arnés: busca `planning-config.json` con Glob `**/plugins/lf/templates/planning-config.json` y cópiala a `.planning/config.json`.
-3. Si no existe `.planning/PROJECT.md`, créalo a partir de ARCHITECTURE.md: contexto y decisiones ya están, no repitas la entrevista.
-4. Por cada hito, en orden:
+2. Por cada hito, en orden:
    - `@planner` (solo lectura) para el plan del hito, **únicamente** si tiene zonas grises no cubiertas por ARCHITECTURE.md.
    - `@executor` para implementar **un solo hito**, con el modelo estándar.
    - `@reviewer` sobre el diff del hito.
    - **Checkpoint** de 5 líneas: hecho / cómo se verificó / desvíos respecto al contrato / siguiente hito / ¿continuar? Solo aquí se espera al usuario.
-5. No pidas confirmación intermedia salvo bloqueo real (fallo de test no resoluble, decisión que contradice el contrato).
+3. No pidas confirmación intermedia salvo bloqueo real (fallo de test no resoluble, decisión que contradice el contrato).
 
 ## Fase 5 — Cierre
 

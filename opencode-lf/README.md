@@ -54,6 +54,6 @@ O, si prefieres activarlo solo en un proyecto, copia el contenido dentro de `.op
 
 ## No portado / fuera de alcance
 
-- Los scripts de instalación y medición del arnés original (`plugins/lf/scripts/install.sh`, `merge-settings.sh`, `prune-gsd-hooks.sh`, `gsd-surface.cjs`, y `scripts/measure.sh`): automatizan la instalación dentro de otro ecosistema y no tienen sentido tal cual en OpenCode. Si quieres medición de uso (tokens, fricción de permisos) aquí, `plugins/lf.ts` ya escribe `permissions.tsv` como base, pero falta el resto de la instrumentación.
+- Los scripts de instalación y medición del arnés original (`plugins/lf/scripts/install.sh`, `merge-settings.sh` y `scripts/measure.sh`): automatizan la instalación dentro de otro ecosistema y no tienen sentido tal cual en OpenCode. Si quieres medición de uso (tokens, fricción de permisos) aquí, `plugins/lf.ts` ya escribe `permissions.tsv` como base, pero falta el resto de la instrumentación.
 - El mecanismo de distribución por marketplace del arnés original: OpenCode no lo tiene. Aquí la instalación es copiar ficheros, como describe la sección de arriba.
 - El nombre `/opusplan`: el comando planifica con el modelo de planificación y ejecuta con el estándar, pero conserva el nombre histórico para no romper la costumbre del equipo. El texto del comando ya no nombra ningún modelo.
