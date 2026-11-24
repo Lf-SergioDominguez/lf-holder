@@ -185,9 +185,13 @@ fi
 LF_INSTALL="$ROOT/plugins/lf/scripts/install.sh"; cc="$mtmp/cfg"
 HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --profile=web --telemetry=on >/dev/null 2>&1
 hcheck "$(jq -c '[.profile, .telemetry]' "$cc/lf/config.json")|$(ls "$cc/lf/profiles" | paste -sd,)" '["web",true]|generic.md,web.md' "install config: guarda perfil y telemetría y copia los perfiles"
-HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --telemetry-every=month-ends >/dev/null 2>&1
+HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --telemetry-every=monthly >/dev/null 2>&1
 HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config >/dev/null 2>&1
-hcheck "$(jq -c '[.profile, .telemetry, .telemetryEvery]' "$cc/lf/config.json")" '["web",true,"month-ends"]' "install config: sin flags conserva lo guardado y la frecuencia"
+hcheck "$(jq -c '[.profile, .telemetry, .telemetryEvery]' "$cc/lf/config.json")" '["web",true,"monthly"]' "install config: sin flags conserva lo guardado y la frecuencia"
+jq '.telemetryEvery = "month-ends"' "$cc/lf/config.json" > "$mtmp/c.json" && cp "$mtmp/c.json" "$cc/lf/config.json"
+HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config >/dev/null 2>&1
+hcheck "$(jq -r '.telemetryEvery' "$cc/lf/config.json")" "monthly" "install config: migra month-ends a monthly"
+HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --telemetry-every=month-ends >/dev/null 2>&1; hcheck "$?" "1" "install config: --telemetry-every=month-ends ya no se admite"
 HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$mtmp/vacio" bash "$LF_INSTALL" --only=config >/dev/null 2>&1
 hcheck "$(jq -c '[.profile, .telemetry, .telemetryEvery]' "$mtmp/vacio/lf/config.json")" '["generic",false,"weekly"]' "install config: por defecto generic, telemetría off y weekly"
 HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --profile=nope >/dev/null 2>&1; hcheck "$?" "1" "install config: perfil desconocido falla"
@@ -196,6 +200,22 @@ HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --tel
 jq '.optional.gsd = true' "$cc/lf/config.json" > "$mtmp/c.json" && cp "$mtmp/c.json" "$cc/lf/config.json"
 HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config,gsd >/dev/null 2>&1
 hcheck "$(jq -c '.optional | keys' "$cc/lf/config.json")" '["taste"]' "install config: elimina optional.gsd previo"
+# telemetry.mjs: send con un gh falso, frecuencia, estado y off
+TEL="$ROOT/plugins/lf/scripts/telemetry.mjs"; tc="$mtmp/tel"; mkdir -p "$tc/lf"
+printf '#!/bin/sh\necho "$@" > "%s/gh.args"\necho https://github.com/x/y/issues/1\n' "$mtmp" > "$mtmp/gh"; chmod +x "$mtmp/gh"
+printf '{"telemetry":false}\n' > "$tc/lf/config.json"
+LF_TELEMETRY_GH="$mtmp/gh" node "$TEL" send --config "$tc" >/dev/null 2>&1; hcheck "$?" "1" "telemetry send: desactivada falla"
+printf '{"telemetry":true,"telemetryEvery":"month-ends"}\n' > "$tc/lf/config.json"
+hcheck "$(node "$TEL" status --config "$tc" | jq -r .frequency)" "monthly" "telemetry status: month-ends se lee como monthly"
+LF_TELEMETRY_GH="$mtmp/gh" node "$TEL" send --config "$tc" --now 2026-11-24T10:00:00Z >/dev/null 2>&1
+hcheck "$(jq -r .lastSent "$tc/lf/telemetry-state.json")|$(grep -c -- '--repo Lf-SergioDominguez/lf-holder-metrics --label telemetry' "$mtmp/gh.args")" "2026-11-24T10:00:00.000Z|1" "telemetry send: abre la issue y guarda lastSent"
+rm "$mtmp/gh.args"; LF_TELEMETRY_GH="$mtmp/gh" node "$TEL" send --config "$tc" --now 2026-11-25T10:00:00Z | jq -r .sent > "$mtmp/s.out"
+hcheck "$(cat "$mtmp/s.out")|$([ -f "$mtmp/gh.args" ] && echo llamó || echo nada)" "false|nada" "telemetry send: antes de tiempo no envía"
+printf '#!/bin/sh\nexit 1\n' > "$mtmp/gh-fail"; chmod +x "$mtmp/gh-fail"; rm "$tc/lf/telemetry-state.json"
+LF_TELEMETRY_GH="$mtmp/gh-fail" node "$TEL" send --config "$tc" >/dev/null 2>&1
+hcheck "$?|$([ -f "$tc/lf/telemetry-state.json" ] && echo guardó || echo intacto)" "1|intacto" "telemetry send: si gh falla no avanza lastSent"
+node "$TEL" off --config "$tc" >/dev/null; hcheck "$(jq -c '[.telemetry, .telemetryEvery]' "$tc/lf/config.json")" '[false,"month-ends"]' "telemetry off: desactiva y conserva el resto"
+node "$TEL" preview --config "$tc" | jq -e 'has("schema") and (has("sessions")) and (keys | length == 14)' >/dev/null; hcheck "$?" "0" "telemetry preview: informe dentro de la lista blanca"
 rm -rf "$mtmp"
 
 echo; echo "log-permission.sh:"

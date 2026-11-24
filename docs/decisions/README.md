@@ -37,4 +37,5 @@ Alternativa descartada: …
 Las decisiones de 0001–0015 conservan el texto original; las cifras de coste son de la fecha indicada.
 | [0021](0021-margen-de-autocompact-y-statusline-de-contexto.md) | 2026-11-17 | Margen de autocompact (salta hacia 220K) y statusline de contexto |
 | [0022](0022-setup-guiado-y-perfiles.md) | 2026-11-23 | `/lf:setup` guiado y perfiles de equipo |
+| [0023](0023-telemetria-opt-in.md) | 2026-11-24 | Telemetría opt-in: `/lf:telemetry`, `month-ends` retirado |
 | [0024](0024-gsd-fuera-del-flujo.md) | 2026-11-24 | GSD fuera del flujo del arnés |

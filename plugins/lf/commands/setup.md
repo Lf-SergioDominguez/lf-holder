@@ -1,6 +1,6 @@
 ---
 description: Configura el arnés LF en ~/.claude (CLAUDE.md, settings, docs) desde el plugin instalado.
-argument-hint: "[--with-taste] [--profile=<nombre>] [--telemetry=on|off] [--telemetry-every=weekly|month-ends|monthly] [--only=…] [--no-sandbox] [--windows] [--rollback]"
+argument-hint: "[--with-taste] [--profile=<nombre>] [--telemetry=on|off] [--telemetry-every=weekly|monthly] [--only=…] [--no-sandbox] [--windows] [--rollback]"
 disable-model-invocation: true
 ---
 
@@ -34,7 +34,7 @@ jq -r '.plugins["lf@lefebvriano-holder"][0].installPath // empty' "${CLAUDE_CONF
 
 En modo Windows, convierte `PLUGIN_ROOT` con `cygpath -u "<ruta>"` venga de donde venga (`${CLAUDE_PLUGIN_ROOT}` o `installPath` llegan como `C:\…`, y Git Bash se come las barras invertidas). Después comprueba que `PLUGIN_ROOT/scripts/install.sh` existe.
 
-`$ARGUMENTS` solo admite los flags de `argument-hint` (`--with-taste`, `--profile=<nombre>`, `--telemetry=on|off`, `--telemetry-every=weekly|month-ends|monthly`, `--only=<pasos separados por comas>`, `--rollback`, `--no-sandbox`, `--windows`). Si contiene cualquier otra cosa, no ejecutes nada y dilo. Si no existe o `jq` no devuelve nada, para y di que el plugin `lf` no está instalado (`/plugin install lf@lefebvriano-holder`).
+`$ARGUMENTS` solo admite los flags de `argument-hint` (`--with-taste`, `--profile=<nombre>`, `--telemetry=on|off`, `--telemetry-every=weekly|monthly`, `--only=<pasos separados por comas>`, `--rollback`, `--no-sandbox`, `--windows`). Si contiene cualquier otra cosa, no ejecutes nada y dilo. Si no existe o `jq` no devuelve nada, para y di que el plugin `lf` no está instalado (`/plugin install lf@lefebvriano-holder`).
 
 ## 0b. Guía: perfil, telemetría y opcionales
 
@@ -43,13 +43,13 @@ Siempre se aplican los pasos base: dependencias del sandbox, CLAUDE.md global, s
 Haz **una sola llamada** a AskUserQuestion con estas preguntas, omitiendo las que ya vengan dadas por flag o que no apliquen:
 
 1. **Perfil de equipo** (una opción; omítela si hay `--profile=`). Lista los `PLUGIN_ROOT/profiles/*.md` (nombre y `description` del frontmatter), con `web` primero si existe. Si el usuario ya tiene `~/.claude/lf/config.json`, pon su perfil actual como recomendado.
-2. **Telemetría** (omítela si hay `--telemetry=`): «¿Enviar un informe agregado y anónimo para medir y mejorar el arnés?». Opciones, en este orden: **1. No**, **2. Cada semana (Recomendada)** (`weekly`), **3. Inicio y final de mes** (`month-ends`) y **4. Cada mes** (`monthly`); 2–4 activan la telemetría (omite las que contradigan `--telemetry-every=`; este flag sin `--telemetry=` solo guarda la frecuencia). Di en la descripción qué se enviaría: versión, variante, perfil, sesiones, turnos, coste por petición, contexto fijo, % de autocompact y recuentos de `ask`/`deny` y de errores de hooks. Nunca prompts, código, rutas, proyectos ni identificadores de sesión. La issue la abre la cuenta de GitHub de quien envía, así que su usuario sería visible. Por ahora solo se guarda la elección; el envío llega con `/lf:telemetry`.
+2. **Telemetría** (omítela si hay `--telemetry=`): «¿Enviar un informe agregado y anónimo para medir y mejorar el arnés?». Opciones, en este orden: **1. No**, **2. Cada semana (Recomendada)** (`weekly`) y **3. Cada mes** (`monthly`); 2–3 activan la telemetría (omite las que contradigan `--telemetry-every=`; este flag sin `--telemetry=` solo guarda la frecuencia). Di en la descripción qué se enviaría: versión, variante, perfil, sesiones, turnos, coste por petición, contexto fijo, % de autocompact y recuentos de `ask`/`deny` y de errores de hooks. Nunca prompts, código, rutas, proyectos ni identificadores de sesión. La issue la abre la cuenta de GitHub de quien envía, así que su usuario sería visible. El setup solo guarda la elección; el informe se previsualiza y se envía con `/lf:telemetry`.
 3. **Opcionales** (`multiSelect: true`, «sin marcar ninguno, solo se aplica la base»), uno por pendiente, quitando los dados por flag (`--with-taste`) o ya activos:
    - **taste-skill** (ya activo si `~/.claude/settings.json` tiene `enabledPlugins["taste-skill@taste-skill"]`): skill de diseño anti-slop (dirección artística, imágenes reales, inspector en navegador). Más potente que `frontend-design`, pero más pesada en contexto; el inspector necesita Node 22+ y Chrome/Edge/Chromium. Solo el plugin principal, no `taste-skill-classics`.
 
 Windows ya se resolvió en el paso 0a: no se pregunta de nuevo; el instalador lo registra en `config.json`.
 
-Con las respuestas, sustituye `$ARGUMENTS` por `--only=deps,claude-md,settings,config` más `,taste` según lo elegido (también lo dado por flag), añade `--profile=<elegido>`, `--telemetry=on|off` y, si eligió 2–4, `--telemetry-every=<valor>`, quita los `--with-*` ya incorporados y conserva `--no-sandbox` y `--windows`. Un paso desmarcado no se ejecuta: taste-skill no se activa solo.
+Con las respuestas, sustituye `$ARGUMENTS` por `--only=deps,claude-md,settings,config` más `,taste` según lo elegido (también lo dado por flag), añade `--profile=<elegido>`, `--telemetry=on|off` y, si eligió 2–3, `--telemetry-every=<valor>`, quita los `--with-*` ya incorporados y conserva `--no-sandbox` y `--windows`. Un paso desmarcado no se ejecuta: taste-skill no se activa solo.
 
 ## 1. Simulación
 

@@ -14,11 +14,11 @@
 #   /plugin install lf@lefebvriano-holder
 #   /lf:setup   (ejecuta este script desde la caché del plugin)
 #
-# Uso: plugins/lf/scripts/install.sh [--only=deps,claude-md,settings,config,taste] [--with-taste] [--profile=<nombre>] [--telemetry=on|off] [--telemetry-every=weekly|month-ends|monthly] [--dry-run] [--no-sandbox] [--windows] [--yes] [--rollback]
+# Uso: plugins/lf/scripts/install.sh [--only=deps,claude-md,settings,config,taste] [--with-taste] [--profile=<nombre>] [--telemetry=on|off] [--telemetry-every=weekly|monthly] [--dry-run] [--no-sandbox] [--windows] [--yes] [--rollback]
 #   --with-taste  añade el paso taste a los pasos por defecto
 #   --profile     perfil de equipo para el paso config (por defecto el ya guardado, o generic)
 #   --telemetry   guarda la elección de telemetría opt-in en config.json (por defecto la ya guardada, o off)
-#   --telemetry-every  frecuencia del informe si la telemetría está activa (weekly, month-ends = inicio y final de mes, o monthly; por defecto la guardada, o weekly)
+#   --telemetry-every  frecuencia del informe si la telemetría está activa (weekly o monthly; por defecto la guardada, o weekly; un month-ends guardado antes pasa a monthly)
 #   --dry-run     muestra qué haría (diffs) sin tocar nada
 #   --no-sandbox  no instala deps ni activa sandbox; usa permissions.defaultMode=dontAsk y los allows de home/settings.nosandbox.json
 #   --windows     permite instalar en Windows nativo (Git Bash); implica --no-sandbox
@@ -54,7 +54,7 @@ done
 [ "$WITH_TASTE" -eq 1 ] && ONLY="$ONLY,taste"
 case ",$ONLY," in *,gsd,*) echo "[lf] el paso gsd ya no existe (ADR 0024); se ignora" >&2 ;; esac
 case "$TELEMETRY" in ""|on|off) ;; *) echo "--telemetry admite on u off, no «$TELEMETRY»" >&2; exit 1 ;; esac
-case "$EVERY" in ""|weekly|month-ends|monthly) ;; *) echo "--telemetry-every admite weekly, month-ends o monthly, no «$EVERY»" >&2; exit 1 ;; esac
+case "$EVERY" in ""|weekly|monthly) ;; *) echo "--telemetry-every admite weekly o monthly, no «$EVERY»" >&2; exit 1 ;; esac
 case "$PROFILE" in *[!a-z0-9-]*) echo "--profile solo admite minúsculas, dígitos y guiones" >&2; exit 1 ;; esac
 
 log()  { printf '\033[1;34m[lf]\033[0m %s\n' "$*"; }
@@ -247,7 +247,7 @@ if step config; then
     exit 1
   fi
   case "${TELEMETRY:-$(jq -r 'if .telemetry == true then "on" else "off" end' <<<"$cur")}" in on) tel=true ;; *) tel=false ;; esac
-  every="${EVERY:-$(jq -r '.telemetryEvery // "weekly"' <<<"$cur")}"
+  every="${EVERY:-$(jq -r '(.telemetryEvery // "weekly") | if . == "month-ends" then "monthly" else . end' <<<"$cur")}"
   step taste && taste=true || taste=$(jq '.optional.taste // false' <<<"$cur")
   new=$(jq -n --argjson cur "$cur" --arg p "$prof" --argjson t "$tel" --arg every "$every" --argjson taste "$taste" \
         --argjson win "$([ "$IS_WINDOWS" -eq 1 ] && echo true || echo false)" \
