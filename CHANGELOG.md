@@ -4,6 +4,20 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+## [1.0.5] — 2026-11-25
+
+H4 de la hoja de ruta: evals reales. Quedan H5–H7; 1.1.0 llegará al cerrar H7.
+
+### Añadido
+
+- Casos de eval `06-symfony-bug-test`, `07-vue-componente`, `08-n-mas-1` y `09-sin-test-conducta` (`plugins/lf/evals/`): scaffold sintético y graders deterministas sobre el fichero final (ADR 0026).
+- `scripts/evals.sh`: lanza un eval por caso (`--baseline`, `--all`, `--case`, `--runs`, `--max-cost-usd`) y llama al comparador.
+- `scripts/evals-compare.mjs`: guarda cada pasada en `plugins/lf/evals/results/summary.jsonl` (ignorado por git) y marca regresión si un caso baja >0,10; el coste +30 % solo avisa. Tests en `tests/evals-compare.test.mjs`.
+
+### Cambiado
+
+- Los evals reales no llevan `Bash` y el caso 09 mide la conducta, no el bloqueo del hook `Stop` (ADR 0026).
+
 ## [1.0.4] — 2026-11-25
 
 H3 de la hoja de ruta: quality gates en local. Quedan H4–H7; 1.1.0 llegará al cerrar H7.

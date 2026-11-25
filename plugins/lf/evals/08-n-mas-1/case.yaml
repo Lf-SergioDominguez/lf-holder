@@ -1,0 +1,91 @@
+schema_version: "1.1"
+name: 08-n-mas-1
+description: Consulta N+1 en un servicio PHP con test en verde; debe resolverlo con una sola consulta (Edit), sin cambiar la salida ni tocar test ni repositorio, y cerrar con "Hecho cuando:".
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    OrderReport::lines (src/Service/OrderReport.php) hace una consulta al repositorio por cada pedido (N+1). Corrígelo para que haga una sola consulta de clientes, sin cambiar la salida y sin tocar ni el test (tests/OrderReportTest.php) ni el repositorio. No puedes ejecutar comandos en este entorno: razona a mano que el test sigue en verde y cierra indicando "Hecho cuando:" con el comando que lo comprobaría y lo que no has podido ejecutar.
+  max_turns: 12
+  timeout_seconds: 240
+  # Sin Bash: con ~/.docker/contexts como enlace (WSL + Docker Desktop) el sandbox del eval se niega a arrancar un caso con Bash.
+  # Sin Write: el grader de proceso exige Edit y tool_used admite un solo tool.
+  allowed_tools: [Read, Edit, Glob, Grep]
+graders:
+  # Forma correcta: el servicio carga los clientes con findByIds(.
+  - name: usa-find-by-ids
+    type: regex
+    target: { source: file, path: src/Service/OrderReport.php }
+    pattern: "->findByIds\\("
+    match: contains
+  # Negación con lookahead: no queda ninguna llamada ->find( (findByIds( no casa).
+  - name: sin-find-por-iteracion
+    type: regex
+    target: { source: file, path: src/Service/OrderReport.php }
+    pattern: "^(?![\\s\\S]*->find\\()[\\s\\S]*$"
+    match: contains
+  # findByIds( no puede estar dentro del foreach sobre los pedidos (sería el mismo N+1).
+  - name: una-sola-consulta
+    type: regex
+    target: { source: file, path: src/Service/OrderReport.php }
+    pattern: "^(?![\\s\\S]*foreach\\s*\\(\\s*\\$orders\\s+as\\s+\\$order\\s*\\)\\s*\\{[^}]*findByIds\\()[\\s\\S]*$"
+    match: contains
+  # Test intacto: pedidos y salidas esperadas como en el scaffold, fila a fila.
+  - name: test-intacto-pedido-1
+    type: regex
+    target: { source: file, path: tests/OrderReportTest.php }
+    pattern: "\\['id' => 10, 'customerId' => 1, 'total' => 500\\]"
+    match: contains
+  - name: test-intacto-pedido-2
+    type: regex
+    target: { source: file, path: tests/OrderReportTest.php }
+    pattern: "\\['id' => 11, 'customerId' => 2, 'total' => 120\\]"
+    match: contains
+  - name: test-intacto-pedido-3
+    type: regex
+    target: { source: file, path: tests/OrderReportTest.php }
+    pattern: "\\['id' => 12, 'customerId' => 1, 'total' => 75\\]"
+    match: contains
+  - name: test-intacto-pedido-4
+    type: regex
+    target: { source: file, path: tests/OrderReportTest.php }
+    pattern: "\\['id' => 13, 'customerId' => 9, 'total' => 30\\]"
+    match: contains
+  - name: test-intacto-esperado-1
+    type: regex
+    target: { source: file, path: tests/OrderReportTest.php }
+    pattern: "'#10 Ana 500'"
+    match: contains
+  - name: test-intacto-esperado-2
+    type: regex
+    target: { source: file, path: tests/OrderReportTest.php }
+    pattern: "'#11 Luis 120'"
+    match: contains
+  - name: test-intacto-esperado-3
+    type: regex
+    target: { source: file, path: tests/OrderReportTest.php }
+    pattern: "'#12 Ana 75'"
+    match: contains
+  - name: test-intacto-esperado-4
+    type: regex
+    target: { source: file, path: tests/OrderReportTest.php }
+    pattern: "'#13 desconocido 30'"
+    match: contains
+  # Repositorio intacto: sigue exponiendo ambos métodos.
+  - name: repositorio-intacto
+    type: regex
+    target: { source: file, path: src/Repository/CustomerRepository.php }
+    pattern: "^(?=[\\s\\S]*function find\\(int \\$id\\))(?=[\\s\\S]*function findByIds\\(array \\$ids\\))[\\s\\S]*$"
+    match: contains
+  # Señal de proceso: edita el servicio.
+  - name: edita-el-servicio
+    type: tool_used
+    tool: Edit
+    input_match: "src/Service/OrderReport\\.php"
+    min: 1
+  - name: hecho-cuando
+    type: regex
+    target: last_message
+    pattern: "Hecho cuando:"
+    match: contains

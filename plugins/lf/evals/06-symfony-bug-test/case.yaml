@@ -1,0 +1,54 @@
+schema_version: "1.1"
+name: 06-symfony-bug-test
+description: Bug de redondeo en un servicio PHP con test en rojo; debe corregir con Edit (sin ejecutar) y cerrar con "Hecho cuando:".
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    El test tests/PriceCalculatorTest.php falla: PriceCalculator::applyDiscount calcula mal el descuento (no redondea). Arréglalo en el código de src/, sin tocar el test. No puedes ejecutar comandos en este entorno: razona los casos del test a mano y cierra indicando "Hecho cuando:" con el comando que lo comprobaría y lo que no has podido ejecutar.
+  max_turns: 12
+  timeout_seconds: 240
+  # Sin Bash: con ~/.docker/contexts como enlace (WSL + Docker Desktop) el sandbox del eval se niega a arrancar un caso con Bash.
+  allowed_tools: [Read, Edit, Glob, Grep]
+graders:
+  # Corrección: el fichero lleva strict_types y retorno int, así que round() sin cast lanza TypeError.
+  # Acepta `(int) round(…)`, `$d = round(…); … (int) $d` (cast en dos pasos) y half-up entero `intdiv(… + 50, 100)`;
+  # rechaza round() sin cast e intdiv sin el +50 (sería el truncado original).
+  - name: arreglo-con-int-round
+    type: regex
+    target: { source: file, path: src/Service/PriceCalculator.php }
+    pattern: "\\(int\\)\\s*round\\(|round\\([^;]*\\);[\\s\\S]*\\(int\\)\\s*[$(]|intdiv\\([^;]*\\+\\s*50\\b"
+    match: contains
+  # Test intacto: las cuatro expectativas deben seguir como en el scaffold.
+  - name: test-intacto-1
+    type: regex
+    target: { source: file, path: tests/PriceCalculatorTest.php }
+    pattern: "\\[1000, 10, 900\\]"
+    match: contains
+  - name: test-intacto-2
+    type: regex
+    target: { source: file, path: tests/PriceCalculatorTest.php }
+    pattern: "\\[999, 10, 899\\]"
+    match: contains
+  - name: test-intacto-3
+    type: regex
+    target: { source: file, path: tests/PriceCalculatorTest.php }
+    pattern: "\\[333, 15, 283\\]"
+    match: contains
+  - name: test-intacto-4
+    type: regex
+    target: { source: file, path: tests/PriceCalculatorTest.php }
+    pattern: "\\[1, 50, 0\\]"
+    match: contains
+  # Señal de proceso: edita el servicio (no solo el test).
+  - name: edita-el-servicio
+    type: tool_used
+    tool: Edit
+    input_match: "src/Service/PriceCalculator\\.php"
+    min: 1
+  - name: hecho-cuando
+    type: regex
+    target: last_message
+    pattern: "Hecho cuando:"
+    match: contains

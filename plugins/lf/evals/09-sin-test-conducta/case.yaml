@@ -1,0 +1,41 @@
+schema_version: "1.1"
+name: 09-sin-test-conducta
+description: Cambio de lógica PHP con ramas sin pedir tests; mide la conducta (edita el servicio y añade al test existente el caso nuevo) y el cierre con "Hecho cuando:". El perfil del gate Stop vive en ~/.claude/lf, que el eval no carga, así que no se mide el bloqueo (lo cubren gate-cases.tsv y test-hooks.sh).
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    En src/Service/ShippingCost.php cambia ShippingCost::cost: el envío es gratis (0 céntimos) si el importe del pedido es de 5000 céntimos o más (añade el importe como tercer parámetro `int $orderCents = 0`, para no romper a los llamadores actuales), y la zona 'remote' lleva un recargo fijo de 700 céntimos sobre la tarifa nacional. No puedes ejecutar comandos en este entorno: razona el cambio a mano y cierra indicando "Hecho cuando:" con el comando que lo comprobaría y lo que no has podido ejecutar.
+  max_turns: 12
+  timeout_seconds: 240
+  # Sin Bash: con ~/.docker/contexts como enlace (WSL + Docker Desktop) el sandbox del eval se niega a arrancar un caso con Bash.
+  # Sin Write: tool_used admite un solo tool y los dos ficheros ya existen, así que se editan con Edit.
+  allowed_tools: [Read, Edit, Glob, Grep]
+graders:
+  - name: edita-el-servicio
+    type: tool_used
+    tool: Edit
+    input_match: "src/Service/ShippingCost\\.php"
+    min: 1
+  # Conducta: con el parámetro opcional, el test existente sigue compilando; solo un agente con iniciativa lo amplía.
+  - name: edita-el-test
+    type: tool_used
+    tool: Edit
+    input_match: "tests/ShippingCostTest\\.php"
+    min: 1
+  - name: test-cubre-zona-remote
+    type: regex
+    target: { source: file, path: tests/ShippingCostTest.php }
+    pattern: "'remote'"
+    match: contains
+  - name: test-cubre-envio-gratis
+    type: regex
+    target: { source: file, path: tests/ShippingCostTest.php }
+    pattern: "5000"
+    match: contains
+  - name: hecho-cuando
+    type: regex
+    target: last_message
+    pattern: "Hecho cuando:"
+    match: contains

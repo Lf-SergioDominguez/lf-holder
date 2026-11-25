@@ -1,0 +1,61 @@
+schema_version: "1.1"
+name: 07-vue-componente
+description: Crear un componente Vue 3 (script setup + TS) siguiendo el patrón de BaseButton, con props/emits tipados y label accesible; sin ejecutar y cerrando con "Hecho cuando:".
+runs: 2
+context:
+  scaffold_script: scaffold.sh
+execution:
+  prompt: |
+    Crea src/components/SearchInput.vue siguiendo el mismo patrón que src/components/BaseButton.vue (script setup con TypeScript). Requisitos: props tipadas `modelValue: string`, `label: string` y `placeholder?: string`; emits tipados `update:modelValue` (con el string nuevo) y `search` (al pulsar Enter, con el valor actual); un `<label for>` ligado al `<input>` mediante un id, y el componente debe ser accesible. No puedes ejecutar comandos en este entorno: razona a mano que el tipado es correcto y cierra indicando "Hecho cuando:" con el comando que lo comprobaría y lo que no has podido ejecutar.
+  max_turns: 12
+  timeout_seconds: 240
+  # Sin Bash: con ~/.docker/contexts como enlace (WSL + Docker Desktop) el sandbox del eval se niega a arrancar un caso con Bash.
+  allowed_tools: [Read, Edit, Write, Glob, Grep]
+graders:
+  # El componente es un fichero nuevo (file_exists solo cuenta los creados en el run).
+  - name: componente-creado
+    type: file_exists
+    path: src/components/SearchInput.vue
+    exists: true
+  - name: props-tipadas
+    type: regex
+    target: { source: file, path: src/components/SearchInput.vue }
+    pattern: "defineProps<"
+    match: contains
+  - name: emits-tipados
+    type: regex
+    target: { source: file, path: src/components/SearchInput.vue }
+    pattern: "defineEmits<"
+    match: contains
+  - name: script-setup-ts
+    type: regex
+    target: { source: file, path: src/components/SearchInput.vue }
+    pattern: "<script\\s+setup\\s+lang=\"ts\">"
+    match: contains
+  # Etiqueta ligada al input: <label for=...> (o :for=...).
+  - name: label-con-for
+    type: regex
+    target: { source: file, path: src/components/SearchInput.vue }
+    pattern: "^(?=[\\s\\S]*<label[^>]*\\s:?for=)(?=[\\s\\S]*<input[^>]*\\s:?id=)[\\s\\S]*$"
+    match: contains
+  - name: emit-update-model-value
+    type: regex
+    target: { source: file, path: src/components/SearchInput.vue }
+    pattern: "update:modelValue"
+    match: contains
+  - name: emit-search
+    type: regex
+    target: { source: file, path: src/components/SearchInput.vue }
+    pattern: "emit\\(\\s*['\"]search['\"]"
+    match: contains
+  # Sin `any` en tipos (negación con lookahead: el esquema solo documenta match: contains).
+  - name: sin-any
+    type: regex
+    target: { source: file, path: src/components/SearchInput.vue }
+    pattern: "^(?![\\s\\S]*(:\\s*any\\b|<any\\b|\\bas\\s+any\\b|any\\[\\]|,\\s*any\\b|\\|\\s*any\\b))[\\s\\S]*$"
+    match: contains
+  - name: hecho-cuando
+    type: regex
+    target: last_message
+    pattern: "Hecho cuando:"
+    match: contains

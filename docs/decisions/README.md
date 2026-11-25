@@ -40,3 +40,4 @@ Las decisiones de 0001–0015 conservan el texto original; las cifras de coste s
 | [0023](0023-telemetria-opt-in.md) | 2026-11-24 | Telemetría opt-in: `/lf:telemetry`, `month-ends` retirado |
 | [0024](0024-gsd-fuera-del-flujo.md) | 2026-11-24 | GSD fuera del flujo del arnés |
 | [0025](0025-quality-gates-locales.md) | 2026-11-25 | Quality gates en local: hook `Stop`, bloque `gates` y plantilla CI |
+| [0026](0026-evals-reales.md) | 2026-11-25 | Evals reales: casos 06–09, `evals.sh` y comparador de regresiones |
