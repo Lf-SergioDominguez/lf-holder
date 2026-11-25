@@ -41,3 +41,22 @@ description: Perfil del equipo Web: PHP/Symfony, WordPress, Node, Astro, React, 
 | E2E y a11y | Playwright + axe (WCAG 2.2 AA) | igual | igual | Sí, en staging |
 
 En local, el arnés aplica los de formato, estático y tests antes de entregar; la migración se genera con `make:migration` y no se ejecuta desde el arnés.
+
+Fuente máquina de los gates locales (la lee el hook `Stop`; la tabla de arriba es la versión humana):
+
+```yaml gates
+gates:
+  code: ["src/**/*.php", "assets/**/*.{ts,tsx,vue,js}", "src/**/*.{ts,tsx,vue,astro,js}"]
+  test: ["tests/**", "**/*.{test,spec}.{ts,tsx,js}", "**/*Test.php"]
+  ignore: ["**/*.md", "migrations/**", "config/**", "docs/**"]
+  commands:
+    symfony:
+      format: "vendor/bin/php-cs-fixer fix --dry-run --diff"
+      static: "vendor/bin/phpstan analyse"
+      test: "vendor/bin/phpunit"
+    node:
+      format: "npx prettier --check . && npx eslint ."
+      # subconjunto local: solo `tsc --noEmit`; `vue-tsc --noEmit` y `astro check` quedan para CI (ver tabla)
+      static: "npx tsc --noEmit"
+      test: "npx vitest run"
+```

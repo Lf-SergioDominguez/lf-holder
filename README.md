@@ -63,7 +63,7 @@ Para razonar a fondo en un turno escribe `ultrathink` en el prompt. Por proyecto
 ```text
 .claude-plugin/marketplace.json   marketplace (plugin lf)
 plugins/lf/                       commands · skills · agents · hooks · home · scripts · docs · templates
-project-templates/                CLAUDE.md y settings.local.json por proyecto
+project-templates/                CLAUDE.md, settings.local.json y quality-gates.yml (CI)
 scripts/                          install.sh (envoltorio) · measure.sh · test-hooks.sh
 opencode-lf/                      puerto del arnés a OpenCode
 docs/                             ONBOARDING · CONTRIBUTING · decisions/ · brief-original

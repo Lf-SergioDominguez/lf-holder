@@ -27,3 +27,11 @@ Bloquean (el cambio no se entrega sin ellos):
 
 Avisan:
 - Lógica nueva sin test.
+
+```yaml gates
+gates:
+  code: []
+  test: []
+  ignore: []
+  commands: {}
+```

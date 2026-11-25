@@ -302,5 +302,123 @@ bash "$ROOT/plugins/lf/scripts/merge-settings.sh" "$ROOT/plugins/lf/home/setting
 [ "$(jq -r .statusLine.command "$sm/s.json")" = "mi-linea.sh" ] && { ok=$((ok+1)); echo "  ok   merge respeta una statusLine ajena"; } || { fail=$((fail+1)); echo "  FAIL merge pisó la statusLine ajena"; }
 rm -rf "$sm"
 
+echo; echo "stop-gate.mjs (--check):"
+SG="$ROOT/plugins/lf/hooks/stop-gate.mjs"
+sgate() { # sgate <perfil> <ruta> <code|test|ignored|none>
+  local got; got=$(node "$SG" --check "$ROOT/plugins/lf/profiles/$1.md" "$2" 2>/dev/null | cut -f2)
+  if [ "$got" = "$3" ]; then ok=$((ok+1)); printf '  ok   %-7s %s %s\n' "$3" "$1" "$2"
+  else fail=$((fail+1)); printf '  FAIL %s %s (esperaba %s, got %s)\n' "$1" "$2" "$3" "$got"; fi
+}
+sgate web src/Foo.php code
+sgate web src/Controller/Deep/Foo.php code
+sgate web assets/app.ts code
+sgate web src/components/App.vue code
+sgate web tests/FooTest.php test
+sgate web src/foo.test.ts test
+sgate web README.md ignored
+sgate web migrations/V1.php ignored
+sgate web config/services.yaml ignored
+sgate web Makefile none
+sgate web src/FooXphp none
+sgate web src/Foo.phpx none
+sgate generic src/Foo.php none
+sgate generic tests/FooTest.php none
+sgcmd=$(node --input-type=module -e "import {loadGates} from '$SG'; import fs from 'node:fs'; const g=loadGates(fs.readFileSync('$ROOT/plugins/lf/profiles/web.md','utf8')); console.log(g.code.length, g.test.length, g.ignore.length, g.commands.symfony.static, '|', g.commands.node.test)" 2>&1)
+[ "$sgcmd" = "3 3 4 vendor/bin/phpstan analyse | npx vitest run" ] && { ok=$((ok+1)); echo "  ok   bloque gates de web.md parseado"; } || { fail=$((fail+1)); echo "  FAIL bloque gates de web.md: $sgcmd"; }
+sgg=$(node --input-type=module -e "import {loadGates} from '$SG'; import fs from 'node:fs'; const g=loadGates(fs.readFileSync('$ROOT/plugins/lf/profiles/generic.md','utf8')); console.log(JSON.stringify(g))" 2>&1)
+[ "$sgg" = '{"code":[],"test":[],"ignore":[],"commands":{}}' ] && { ok=$((ok+1)); echo "  ok   bloque gates de generic.md vacío"; } || { fail=$((fail+1)); echo "  FAIL bloque gates de generic.md: $sgg"; }
+
+sgu=$(node --input-type=module -e "import {classify,globToRegExp} from '$SG'; const r=[globToRegExp('a/*.js').test('a/b/c.js'), globToRegExp('a/*.js').test('a/b.js'), globToRegExp('a,b').test('a,b'), globToRegExp('a,b').test('a'), classify({code:['**/*.ts'],test:[],ignore:['docs/**']},'docs/x.ts'), classify({code:['**/*.ts'],test:['**/*.md'],ignore:['**/*.md']},'a.md')]; console.log(r.join(' '))" 2>&1)
+[ "$sgu" = "false true true false ignored test" ] && { ok=$((ok+1)); echo "  ok   globs y solapamientos (unitarios)"; } || { fail=$((fail+1)); echo "  FAIL globs/solapamientos: $sgu"; }
+sgd=$(mktemp -d)
+printf '```yaml gates\ngates:\n  code:\n    - x\n```\n' > "$sgd/list.md"
+printf '```yaml gates\ngates:\n  Code: ["a"]\n```\n' > "$sgd/key.md"
+for sgc in list key; do
+  sge=$(node "$SG" --check "$sgd/$sgc.md" a 2>&1 >/dev/null); sgrc=$?
+  [ "$sgrc" -ne 0 ] && [ -n "$sge" ] && { ok=$((ok+1)); echo "  ok   bloque inválido ($sgc) -> error"; } || { fail=$((fail+1)); echo "  FAIL bloque inválido ($sgc) rc=$sgrc"; }
+done
+ln -s "$SG" "$sgd/link.mjs"
+[ "$(node "$sgd/link.mjs" --check "$ROOT/plugins/lf/profiles/web.md" src/Foo.php | cut -f2)" = code ] && { ok=$((ok+1)); echo "  ok   ejecución directa bajo symlink"; } || { fail=$((fail+1)); echo "  FAIL ejecución bajo symlink"; }
+rm -rf "$sgd"
+
+echo; echo "stop-gate.mjs (hook Stop):"
+sgh=$(mktemp -d); sgnode=$(command -v node)
+mkdir -p "$sgh/cfg/lf/profiles" "$sgh/tmp"
+cp "$ROOT/plugins/lf/profiles/web.md" "$ROOT/plugins/lf/profiles/generic.md" "$sgh/cfg/lf/profiles/"
+echo '{"profile":"web"}' > "$sgh/cfg/lf/config.json"
+sgrepo() { rm -rf "$sgh/repo"; mkdir -p "$sgh/repo/src"; git -C "$sgh/repo" init -q; git -C "$sgh/repo" -c user.email=t@t -c user.name=t commit -q --allow-empty -m init; }
+sghook() { # sghook <block|pass> <descripción> <sid> [stop_hook_active] — repo en $sgh/repo
+  local out rc got=pass
+  out=$(jq -cn --arg s "$3" --arg c "$sgh/repo" --argjson a "${4:-false}" '{session_id:$s,cwd:$c,stop_hook_active:$a}' \
+        | CLAUDE_CONFIG_DIR="$sgh/cfg" TMPDIR="$sgh/tmp" env ${SGPATH:+PATH="$SGPATH"} "$sgnode" "$SG" 2>/dev/null)
+  rc=$?; sgout=$out
+  [ -n "$out" ] && got=block
+  if [ "$got" = block ] && [ "$(printf '%s' "$out" | jq -r .decision 2>/dev/null)" != block ]; then got=salida-inválida; fi
+  [ "$rc" -ne 0 ] && got="exit-$rc"
+  if [ "$got" = "$1" ]; then ok=$((ok+1)); printf '  ok   %-5s %s\n' "$1" "$2"
+  else fail=$((fail+1)); printf '  FAIL %s (got %s) %s\n' "$1" "$got" "$2"; fi
+}
+sgrepo; echo '<?php' > "$sgh/repo/src/Foo.php"
+sghook block "código sin test (sin seguimiento)" s1
+sghook pass "segunda vez en la misma sesión (marca)" s1
+sghook block "otra sesión vuelve a avisar" s2
+sghook pass "stop_hook_active" s3 true
+[ ! -e "$sgh/tmp/lf-stop-gate-s3" ] && { ok=$((ok+1)); echo "  ok   stop_hook_active no crea marca"; } || { fail=$((fail+1)); echo "  FAIL stop_hook_active creó marca"; }
+mkdir -p "$sgh/repo/tests"; echo '<?php' > "$sgh/repo/tests/FooTest.php"
+sghook pass "código con test" s4
+rm "$sgh/repo/tests/FooTest.php"; echo 'x' > "$sgh/repo/README.md"
+git -C "$sgh/repo" add -A; git -C "$sgh/repo" -c user.email=t@t -c user.name=t commit -q -m c1
+echo 'doc' >> "$sgh/repo/README.md"
+sghook pass "solo ignorados (README)" s5
+git -C "$sgh/repo" checkout -q -- README.md; git -C "$sgh/repo" rm -q README.md
+sghook pass "solo borrados" s6
+sgrepo; mkdir -p "$sgh/repo/src/New/Deep"; echo '<?php' > "$sgh/repo/src/New/Deep/Bar.php"
+sghook block "directorio nuevo sin seguimiento (-uall)" s7
+sgrepo; echo '<?php' > "$sgh/repo/src/Foo.php"; git -C "$sgh/repo" add -A
+sghook block "código staged sin test" s8
+sgrepo; echo '<?php' > "$sgh/repo/src/Foo.php"; git -C "$sgh/repo" add -A; git -C "$sgh/repo" -c user.email=t@t -c user.name=t commit -q -m c2
+echo '// x' >> "$sgh/repo/src/Foo.php"
+sghook block "modificación sin preparar de fichero versionado" s15
+git -C "$sgh/repo" checkout -q -- src/Foo.php; git -C "$sgh/repo" mv src/Foo.php src/Bar.php; echo '// x' >> "$sgh/repo/src/Bar.php"
+sghook block "renombrado con modificación" s16
+[ "$(printf '%s' "$sgout" | jq -r .reason | grep -c '^- src/')" = 1 ] && printf '%s' "$sgout" | jq -r .reason | grep -q 'src/Bar.php' && { ok=$((ok+1)); echo "  ok   renombrado: solo el destino en reason (sin el origen)"; } || { fail=$((fail+1)); echo "  FAIL reason del renombrado"; }
+sgrepo; for n in 1 2 3 4 5 6; do echo '<?php' > "$sgh/repo/src/F$n.php"; done
+sghook block "6 ficheros de código" s17
+[ "$(printf '%s' "$sgout" | jq -r .reason | grep -c '^- src/')" = 5 ] && printf '%s' "$sgout" | jq -r .reason | grep -q '… y 1 más' && { ok=$((ok+1)); echo "  ok   reason lista 5 y «… y 1 más»"; } || { fail=$((fail+1)); echo "  FAIL recorte del reason a 5"; }
+SGPATH=/nonexistent sghook pass "sin git en PATH" s18
+sgrepo; echo '<?php' > "$sgh/repo/src/Foo.php"
+echo '{"profile":"generic"}' > "$sgh/cfg/lf/config.json"; sghook pass "perfil generic" s9
+echo '{}' > "$sgh/cfg/lf/config.json"; sghook pass "sin perfil en config (generic)" s10
+echo '{"profile":"inexistente"}' > "$sgh/cfg/lf/config.json"; sghook pass "perfil sin fichero instalado" s11
+echo '{"profile":"web"}' > "$sgh/cfg/lf/config.json"
+printf '```yaml gates\ngates:\n  code:\n    - x\n```\n' > "$sgh/cfg/lf/profiles/web.md"; sghook pass "bloque inválido: exit 0" s12
+grep -q "gates" "$sgh/cfg/lf-metrics/stop-gate.log" 2>/dev/null && { ok=$((ok+1)); echo "  ok   bloque inválido queda en el log"; } || { fail=$((fail+1)); echo "  FAIL sin log del bloque inválido"; }
+printf '```yaml gates\ngates:\n  code: ["a{b"]\n```\n' > "$sgh/cfg/lf/profiles/web.md"; echo x > "$sgh/repo/a"
+sghook pass "glob inválido: exit 0" s13
+cp "$ROOT/plugins/lf/profiles/web.md" "$sgh/cfg/lf/profiles/web.md"
+sghook pass "session_id inseguro" "../x"
+rm -rf "$sgh/repo"; mkdir -p "$sgh/repo"
+sghook pass "fuera de repo git" s14
+[ "$(echo 'no es json' | CLAUDE_CONFIG_DIR="$sgh/cfg" TMPDIR="$sgh/tmp" node "$SG" 2>/dev/null; echo "rc=$?")" = "rc=0" ] && { ok=$((ok+1)); echo "  ok   stdin inválido: exit 0 y sin salida"; } || { fail=$((fail+1)); echo "  FAIL stdin inválido"; }
+jq -e '.hooks.Stop[0].hooks[0] | (.command | contains("stop-gate.mjs")) and (.onFailure == null)' "$ROOT/plugins/lf/hooks/hooks.json" >/dev/null && { ok=$((ok+1)); echo "  ok   hooks.json: Stop sin onFailure"; } || { fail=$((fail+1)); echo "  FAIL hooks.json Stop"; }
+rm -rf "$sgh"
+
+echo; echo "quality-gates.yml (plantilla CI):"
+QG="$ROOT/project-templates/quality-gates.yml"
+if python3 -c 'import yaml' 2>/dev/null; then
+  python3 -I -c 'import sys,yaml; d=yaml.safe_load(open(sys.argv[1])); assert set(d["jobs"])=={"detect","symfony","node"}; assert "pull_request" in d[True]' "$QG" 2>/dev/null && { ok=$((ok+1)); echo "  ok   YAML válido con jobs detect/symfony/node"; } || { fail=$((fail+1)); echo "  FAIL YAML de quality-gates.yml"; }
+  sgcmds=$(node --input-type=module -e "import {loadGates} from '$SG'; import fs from 'node:fs'; console.log(JSON.stringify(loadGates(fs.readFileSync('$ROOT/plugins/lf/profiles/web.md','utf8')).commands))" 2>&1)
+  sgmiss=$(python3 -I -c 'import sys,json,yaml
+d=yaml.safe_load(open(sys.argv[1])); c=json.loads(sys.argv[2]); miss=[]; n=0
+for s,cs in c.items():
+    runs=[st.get("run") for st in d["jobs"][s]["steps"]]
+    for k,cmd in cs.items():
+        n+=1
+        if cmd not in runs: miss.append(s+"."+k+": "+cmd)
+print("faltan: "+" ; ".join(miss) if miss else "n=%d"%n)' "$QG" "$sgcmds" 2>&1)
+  [ "$sgmiss" = "n=6" ] && { ok=$((ok+1)); echo "  ok   los 6 comandos de gates.commands están en el job de su stack"; } || { fail=$((fail+1)); echo "  FAIL comandos del workflow: $sgmiss"; }
+else echo "  skip YAML y comandos (sin python3-yaml)"; fi
+grep -q "quality-gates.yml" "$ROOT/project-templates/CLAUDE.md" && { ok=$((ok+1)); echo "  ok   project-templates/CLAUDE.md menciona el workflow"; } || { fail=$((fail+1)); echo "  FAIL CLAUDE.md sin mención del workflow"; }
+
 echo; echo "Resultado: $ok ok, $fail fallos"
 [ "$fail" -eq 0 ]

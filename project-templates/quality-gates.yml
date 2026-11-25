@@ -1,0 +1,72 @@
+# Quality gates en cada PR: formato, estático y tests (mismos comandos que el bloque `gates` de
+# ~/.claude/lf/profiles/web.md). Copia a .github/workflows/quality-gates.yml y ajusta versiones.
+# SAST, SCA, E2E y deploy no van aquí: viven en `deployments-web` y en los ajustes del repo.
+# Requisitos: job symfony → composer.json con php-cs-fixer y phpstan como dependencias de desarrollo;
+# job node → package-lock.json (npm) y typescript, prettier, eslint y vitest instalados. Sin
+# package-lock.json (yarn/pnpm) el job node no se lanza: adapta `cache` y la instalación.
+name: quality-gates
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: quality-gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    outputs:
+      symfony: ${{ steps.stacks.outputs.symfony }}
+      node: ${{ steps.stacks.outputs.node }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: stacks
+        run: |
+          [ -f composer.json ] && echo "symfony=true" >> "$GITHUB_OUTPUT" || echo "symfony=false" >> "$GITHUB_OUTPUT"
+          [ -f package-lock.json ] && echo "node=true" >> "$GITHUB_OUTPUT" || echo "node=false" >> "$GITHUB_OUTPUT"
+
+  symfony:
+    needs: detect
+    if: needs.detect.outputs.symfony == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          tools: composer
+      - run: composer install --no-interaction --prefer-dist
+      - name: Formato
+        run: vendor/bin/php-cs-fixer fix --dry-run --diff
+      - name: Estático
+        run: vendor/bin/phpstan analyse
+      - name: Tests
+        run: vendor/bin/phpunit
+
+  node:
+    needs: detect
+    if: needs.detect.outputs.node == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: lts/*
+          cache: npm
+      - run: npm ci
+      - name: Formato
+        run: npx prettier --check . && npx eslint .
+      - name: Estático
+        run: npx tsc --noEmit
+      - name: Estático (Vue)
+        if: hashFiles('node_modules/.bin/vue-tsc') != ''
+        run: npx vue-tsc --noEmit
+      - name: Estático (Astro)
+        if: hashFiles('node_modules/.bin/astro') != ''
+        run: npx astro check
+      - name: Tests
+        run: npx vitest run

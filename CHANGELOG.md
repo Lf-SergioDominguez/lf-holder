@@ -4,6 +4,20 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+## [1.0.4] — 2026-11-25
+
+H3 de la hoja de ruta: quality gates en local. Quedan H4–H7; 1.1.0 llegará al cerrar H7.
+
+### Añadido
+
+- Hook `Stop` (`stop-gate.mjs`): si el cambio toca código y ningún test, bloquea una vez por sesión pidiendo el test o una justificación de una línea. Ante cualquier error o sin perfil, no hace nada (ADR 0025).
+- Bloque ```` ```yaml gates ```` en `profiles/web.md` (globs `code`/`test`/`ignore` y `commands` por stack) y vacío en `generic.md`; el hook y la futura auditoría H7 lo leen.
+- `project-templates/quality-gates.yml`: workflow de GitHub Actions con los mismos comandos que los gates del perfil; `vue-tsc` y `astro check` solo en CI. Enlazado desde `project-templates/CLAUDE.md`.
+
+### Cambiado
+
+- Para activar el hook hay que ejecutar `/lf:setup` tras actualizar (copia los perfiles a `~/.claude/lf/profiles/`); sin el bloque `gates` el hook queda inerte.
+
 ## [1.0.3] — 2026-11-24
 
 Primer paso hacia 1.1.0: setup guiado con perfiles (H1) y telemetría opt-in (H2). Quedan H3–H7; 1.1.0 llegará al cerrar H7.

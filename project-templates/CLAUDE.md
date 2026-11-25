@@ -40,6 +40,7 @@ Una frase: qué hace este proyecto y para quién. Stack principal (p. ej. Symfon
 1. `php -l` en ficheros PHP tocados / `vue-tsc --noEmit` en frontend.
 2. Test del módulo afectado (comando exacto arriba).
 3. `bin/console lint:twig templates/` si se tocaron plantillas.
+4. CI: `.github/workflows/quality-gates.yml` (copia de `project-templates/quality-gates.yml` del arnés); mismos comandos que los gates del perfil.
 
 ## Hecho significa
 

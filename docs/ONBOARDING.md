@@ -33,7 +33,7 @@ Reinicia la sesión.
 | ---------------------- | --------------------------------------------------------------------------------------------------------------------- |
 | `/sandbox`             | Sin pestaña «Dependencies»; modo auto-allow                                                                           |
 | `/permissions`         | `defaultMode: acceptEdits`, reglas allow/ask/deny cargadas                                                            |
-| `/hooks`               | `lf` (bash-gate, trim-output, guard-read, log-permission, session-start, precompact) |
+| `/hooks`               | `lf` (bash-gate, trim-output, guard-read, log-permission, session-start, stop-gate, precompact) |
 | `/context`             | CLAUDE.md global visible (<3K tokens); listado de skills corto (las skills `lf` con `paths` no aparecen hasta tocar ficheros) |
 | Pide un cambio pequeño | Empieza con `Triaje: S — …` y termina sin haberte preguntado nada                                                     |
 
