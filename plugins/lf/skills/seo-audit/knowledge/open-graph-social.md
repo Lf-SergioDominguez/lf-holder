@@ -258,5 +258,5 @@ Twitter Cards controlan la apariencia de los links cuando se comparten en Twitte
 - [ ] `twitter:image` (puede reutilizar la de OG)
 - [ ] Todas las URLs de imágenes son absolutas (no relativas)
 - [ ] Validar con Facebook Sharing Debugger: https://developers.facebook.com/tools/debug/
-- [ ] Validar con Twitter Card Validator: https://cards-dev.twitter.com/validator
+- [ ] Twitter/X: el Card Validator oficial ya no muestra vista previa (retirado desde 2022); pega la URL en el compositor de X para ver la tarjeta, o añade `?v=2` para saltar la caché (~7 días)
 - [ ] Validar con LinkedIn Post Inspector: https://www.linkedin.com/post-inspector/

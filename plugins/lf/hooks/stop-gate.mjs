@@ -9,7 +9,7 @@ import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 
-const GATE_KEYS = ['code', 'test', 'ignore', 'commands'];
+const GATE_KEYS = ['code', 'test', 'ignore', 'commands', 'checks'];
 
 // Sin librería YAML: el bloque solo usa mapas por sangría, listas en línea ["a", "b"] y escalares entre comillas.
 export function loadGates(profileMd) {
@@ -41,7 +41,37 @@ export function loadGates(profileMd) {
   }
   g.commands ??= {};
   if (typeof g.commands !== 'object' || Array.isArray(g.commands)) throw new Error('gates.commands debe ser un mapa');
+  if (g.checks !== undefined) validateChecks(g.checks);
   return g;
+}
+
+const CHECK_STACKS = ['symfony', 'wordpress', 'node'];
+const CHECK_STRINGS = ['gate', 'stack', 'blocks', 'fix', 'github'];
+const CHECK_LISTS = ['files', 'composer', 'npm', 'ci'];
+const CHECK_GITHUB = ['secret-scanning', 'ruleset-main'];
+
+// Checklist de /lf:quality-gates (H7): el hook Stop no la usa, pero `loadGates` falla si está mal formada.
+function validateChecks(checks) {
+  if (typeof checks !== 'object' || Array.isArray(checks)) throw new Error('gates.checks debe ser un mapa');
+  for (const [id, c] of Object.entries(checks)) {
+    const at = `gates.checks.${id}`;
+    if (typeof c !== 'object' || Array.isArray(c)) throw new Error(`${at} debe ser un mapa`);
+    for (const k of Object.keys(c)) {
+      if (![...CHECK_STRINGS, ...CHECK_LISTS].includes(k)) throw new Error(`${at}: clave desconocida "${k}" (válidas: ${[...CHECK_STRINGS, ...CHECK_LISTS].join(', ')})`);
+    }
+    for (const k of ['gate', 'stack', 'fix']) {
+      if (typeof c[k] !== 'string' || !c[k]) throw new Error(`${at}: falta "${k}"`);
+    }
+    for (const k of ['blocks', 'github']) {
+      if (c[k] !== undefined && typeof c[k] !== 'string') throw new Error(`${at}.${k} debe ser un escalar`);
+    }
+    for (const k of CHECK_LISTS) {
+      if (c[k] !== undefined && !Array.isArray(c[k])) throw new Error(`${at}.${k} debe ser una lista en línea ["a", "b"]`);
+    }
+    if (!CHECK_STACKS.includes(c.stack)) throw new Error(`${at}: stack "${c.stack}" no válido (${CHECK_STACKS.join('|')})`);
+    if (c.github !== undefined && !CHECK_GITHUB.includes(c.github)) throw new Error(`${at}: github "${c.github}" no válido (${CHECK_GITHUB.join('|')})`);
+    if (!CHECK_LISTS.some((k) => c[k]?.length) && !c.github) throw new Error(`${at}: necesita al menos un detector (${[...CHECK_LISTS, 'github'].join(', ')})`);
+  }
 }
 
 // Soportado: `*` (no cruza `/`), `**`, `**/` y `{a,b}`. NO soportado: `?` ni `[]` (se toman como literales).

@@ -30,6 +30,8 @@ Un subagente sin `model:` hereda el de la sesión, y eso es lo que dispara el ga
 - `CLAUDE_CODE_SUBAGENT_MODEL=claude-haiku-5-5` en `settings.lf.json`: valor por defecto de cualquier subagente.
 - `model:` en la cabecera de cada subagente del plugin, que manda sobre el valor por defecto.
 
+Referencia de precios (entrada / salida por MTok, [tarifas oficiales](https://platform.claude.com/docs/en/about-claude/pricing), verificadas 2026-11-26): Sonnet 5.5 2 $ / 10 $, Opus 5.5 4 $ / 20 $, Haiku 5.5 0,10 $ / 0,50 $. Las lecturas de caché de Sonnet 5.5 y Opus 5.5 cuestan 0,05× la entrada (no 0,1×), y Sonnet/Opus incluyen el contexto de 1M tokens sin recargo.
+
 Haiku 5.5 cuesta 0,10 $ / 0,50 $ por MTok con prompts de hasta 100k tokens; por encima, toda la petición paga 0,50 $ / 2,50 $ (sigue siendo ~4 veces menos que Sonnet). Los subagentes de muchos turnos, como el reviewer, pueden cruzar ese umbral por la caché acumulada. Los modelos 4.7 y posteriores generan ≈ +30 % de tokens con el mismo texto: al comparar métricas antiguas, parte de la diferencia es el tokenizador.
 
 Al añadir un subagente, ponle `model:` y `effort:`. Un subagente trabaja con su contexto propio y devuelve un resumen, así que lo que lee no ensucia la conversación principal; por eso son baratos y los agent teams no.

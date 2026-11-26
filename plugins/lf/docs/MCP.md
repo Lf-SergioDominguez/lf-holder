@@ -8,7 +8,7 @@ Cada herramienta MCP pide permiso por defecto. Mide el coste real con `/context`
 **Para qué**: automatizar y probar un navegador (navegar, rellenar, capturar).
 **Vía**: servidor local por `npx`; sin cuenta.
 **Requisitos**: Node 20+ (`node -v`).
-**Comando**: `claude mcp add --scope user playwright -- npx @playwright/mcp@latest`. En Windows nativo usa `cmd /c npx` en lugar de `npx`. Flags opcionales del servidor: `--headless`, `--browser=<n>`, `--isolated`.
+**Comando**: `claude mcp add --scope user playwright -- npx @playwright/mcp@latest`. En Windows nativo usa `cmd /c npx` en lugar de `npx`. Flags opcionales del servidor (van en `args`): `--headless` (por defecto abre ventana), `--browser=chrome|firefox|webkit|msedge`, `--isolated` (perfil en memoria).
 **Auth**: ninguna.
 **Verificar**: `claude mcp get playwright` en estado conectado; las herramientas aparecen al reiniciar la sesión. Prueba: «abre example.com y dime el título».
 **Contexto**: alto, expone muchas herramientas.
@@ -18,7 +18,7 @@ Cada herramienta MCP pide permiso por defecto. Mide el coste real con `/context`
 ## GitHub
 
 **Para qué**: issues, PR y API de GitHub.
-**Vía**: servidor remoto `https://api.githubcopilot.com/mcp`; GitHub Enterprise Server no está soportado. `gh` primero: el MCP solo si hace falta API sin CLI.
+**Vía**: servidor remoto `https://api.githubcopilot.com/mcp`; GitHub Enterprise Server no está soportado (GHE Cloud con residencia de datos, `*.ghe.com`, usa su propia URL). `gh` primero: el MCP solo si hace falta API sin CLI.
 **Requisitos**: `gh auth status` correcto (si no, `gh auth login`).
 **Comando**: `claude mcp add-json --scope user github '{"type":"http","url":"https://api.githubcopilot.com/mcp","headersHelper":"echo \"{\\\"Authorization\\\": \\\"Bearer $(gh auth token)\\\"}\""}'`. Si `add-json` da «Invalid input» (Claude Code ≤2.1.0 o Windows), consulta `docs/installation-guides/install-claude.md` del repo github/github-mcp-server.
 **Auth**: `headersHelper` ejecuta `gh auth token` en cada conexión; el token no se guarda en ningún fichero. `--read-only` y los toolsets solo existen en el servidor local.
@@ -30,7 +30,7 @@ Cada herramienta MCP pide permiso por defecto. Mide el coste real con `/context`
 ## Atlassian
 
 **Para qué**: leer y actualizar Jira y Confluence.
-**Vía**: servidor remoto v2 (`https://mcp.atlassian.com/v2/mcp`); la v1 migra el 2027-03-01. Si tu cuenta ya tiene el conector claude.ai de Atlassian, no lo dupliques.
+**Vía**: servidor remoto v2 (`https://mcp.atlassian.com/v2/mcp`); el endpoint SSE `/v1/sse` ya no funciona desde 2026-06-30 y las conexiones v1 pasan solas a las herramientas v2 el 2027-03-01. Si tu cuenta ya tiene el conector claude.ai de Atlassian, no lo dupliques.
 **Requisitos**: cuenta Atlassian Cloud con acceso al sitio; Teamwork Graph/Rovo consume créditos.
 **Comando**: `claude mcp add --scope user --transport http atlassian https://mcp.atlassian.com/v2/mcp`.
 **Auth**: OAuth 2.1: `/mcp` → atlassian → Authenticate (sin navegador en WSL: `claude mcp login atlassian --no-browser`).

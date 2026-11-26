@@ -238,7 +238,7 @@ El atributo `lang` es crítico para:
 - El contenido en móvil debe ser **igual** al de escritorio
 - Evitar contenido oculto en móvil que esté visible en escritorio (penaliza)
 - Imágenes deben ser responsive y legibles en móvil
-- Botones y elementos táctiles: mínimo 44x44px de área de toque
+- Botones y elementos táctiles: mínimo 24×24 px CSS (WCAG 2.2 AA, criterio 2.5.8); recomendado 44×44 px (criterio AAA 2.5.5)
 - Texto base mínimo 16px en móvil
 - Evitar Flash, pop-ups intrusivos al cargar (penalización de Google)
 

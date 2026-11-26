@@ -16,14 +16,19 @@ Treat every external input as hostile, every secret as sacred, every authorizati
 
 ## The Three-Tier Boundary System
 
-**Always:** validate all external input at the boundary; parameterize all DB queries; encode output (framework auto-escaping); HTTPS everywhere; hash passwords with bcrypt/scrypt/argon2; security headers (CSP, HSTS, X-Frame-Options); httpOnly/secure/sameSite cookies; run the package manager's native audit before release.
+**Always:** validate all external input at the boundary; parameterize all DB queries; encode output (framework auto-escaping); HTTPS everywhere with **automated certificate renewal** (public TLS certificates are capped at 200 days since 2026-03-15, 100 days from 2027-03-15 and 47 days from 2029-03-15 per CA/Browser Forum SC-081; manual renewals will not survive that); hash passwords with bcrypt/scrypt/argon2; security headers (CSP, HSTS, X-Frame-Options); httpOnly/secure/sameSite cookies; run the package manager's native audit before release.
 
 **Ask first:** new auth flows, new sensitive-data categories, new external integrations, CORS changes, file upload handlers, rate-limit changes, elevated permissions.
 
 **Never:** commit secrets; log sensitive data; trust client-side validation as a security boundary; disable security headers; use `eval()`/`innerHTML` with user data; store auth tokens in localStorage; expose stack traces to users.
 
-## OWASP Top 10 Prevention Patterns
+## OWASP Top 10:2025 Prevention Patterns
 
+Current list (published 2025-11-06): A01 Broken Access Control (now includes SSRF), A02 Security Misconfiguration, A03 Software Supply Chain Failures, A04 Cryptographic Failures, A05 Injection, A06 Insecure Design, A07 Authentication Failures, A08 Software or Data Integrity Failures, A09 Security Logging and Alerting Failures, A10 Mishandling of Exceptional Conditions.
+
+- **Supply chain (A03):** see "Supply chain" below; lockfiles committed, pinned build tooling, SBOM where the pipeline supports it.
+- **Exceptional conditions (A10):** fail closed (an error in an auth/authorization check denies, never allows); catch specific exceptions, release resources and roll back partial transactions; generic message to the user, details only in logs.
+- **Logging and alerting (A09):** log auth failures and access-control denials with enough context to investigate (never secrets/PII), and alert on them.
 - **Injection:** always parameterized queries / ORM — never string-concatenated SQL.
 - **Broken auth:** bcrypt/argon2 hashing (cost ≥12); sessions httpOnly+secure+sameSite, secret from env.
 - **XSS:** rely on framework auto-escaping; sanitize any raw HTML with DOMPurify; never `innerHTML` with user input.
@@ -54,6 +59,10 @@ Use a shared store (Redis) once there's more than one process/instance — in-me
 ## Secrets Management
 
 `.env` committed only as `.env.example`; real `.env`/`.env.local` gitignored, along with `*.pem`/`*.key`. Check staged diffs for secret-shaped strings before committing. **If a secret is ever committed, rotate it** — history rewrite alone is not enough.
+
+## Vulnerability Disclosure
+
+Publish `/.well-known/security.txt` (RFC 9116): `Contact` and `Expires` (RFC 3339 date, under a year ahead) are mandatory; an expired `Expires` is the most common error. If the organization ships products with digital elements in the EU, the Cyber Resilience Act's reporting duties for actively exploited vulnerabilities and severe incidents apply since 2026-09-11 (early warning in 24 h, notification in 72 h, via the ENISA single reporting platform); most other CRA requirements apply from 2027-12-11. The harness does not decide scope: flag it to the team.
 
 ## Data Privacy & Compliance
 

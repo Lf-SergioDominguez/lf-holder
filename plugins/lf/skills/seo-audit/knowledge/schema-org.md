@@ -228,7 +228,7 @@
 
 ## FAQPage
 
-**Elegibilidad**: Solo para sitios de gobierno o salud reconocidos (restricción de Google desde 2023).
+**Estado (2026-11)**: Google retiró el rich result de FAQ el 2026-05-07 (ya limitado a sitios de gobierno y salud desde 2023) y eliminó su documentación el 2026-06-15; tampoco hay rich result de **HowTo** (retirado en 2023). El tipo `FAQPage` sigue siendo schema.org válido, pero **no da rich result en Google**: no lo añadas por SEO; si ya existe, no es un error y no hace falta quitarlo. Los tipos con rich result vigentes están en la [galería de Search](https://developers.google.com/search/docs/appearance/structured-data/search-gallery).
 
 ```json
 <script type="application/ld+json">

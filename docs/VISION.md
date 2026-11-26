@@ -15,7 +15,7 @@ Qué es **Lefebvriano holder**, en qué punto está y hacia dónde va. Lo revisa
   - Skills de seguridad (OWASP), SEO/WPO y accesibilidad.
 - **Encaje con CI/CD**: los tests que genera el arnés son los que ejecuta el pipeline de cada proyecto. Si fallan, no se despliega y queda registrado. El gate de deploy vive en el CI del proyecto; el arnés produce lo que ese gate comprueba.
 
-## Dónde está hoy (autoevaluación: 7/10)
+## Dónde está hoy (autoevaluación: 8/10)
 
 **Bien:**
 - El ahorro está medido (`scripts/measure.sh`, ADR 0007, 0008 y 0016), no supuesto.
@@ -24,9 +24,10 @@ Qué es **Lefebvriano holder**, en qué punto está y hacia dónde va. Lo revisa
 
 **Falta para el 9:**
 - La medición sale de un solo desarrollador. Falta una línea base de equipo.
-- Los tests son una norma del flujo, pero ningún hook comprueba que existan.
-- Los quality gates del CI y lo que exige el arnés en local no están alineados.
-- Las evals existen (`plugins/lf/evals`), pero no se ejecutan con regularidad. Si una skill se degrada, nadie se entera.
+- El hook `Stop` pide el test (H3), pero solo una vez por sesión y sin ejecutarlo; `/lf:quality-gates` (H7) audita ficheros y configuración, no ejecuta los gates ni mide cobertura real.
+- Los gates de CI y los locales comparten fuente (`gates` del perfil), pero el pipeline real de cada proyecto (`deployments-web`) queda fuera de lo que el arnés comprueba.
+- Las evals existen (`scripts/evals.sh`, H4) y las lanza el mantenedor a mano. Si una skill se degrada entre ejecuciones, nadie se entera.
+- `/lf:quality-gates` solo se ha probado por partes (script + `gh api`), no invocada desde el plugin instalado.
 
 ### Matices a la descripción habitual
 
@@ -34,7 +35,7 @@ Qué es **Lefebvriano holder**, en qué punto está y hacia dónde va. Lo revisa
 |---|---|
 | «Elimina decir sí a todo» | Elimina los permisos rutinarios. Commit, push, migraciones y `rm` siguen preguntando, y lo destructivo está bloqueado. |
 | «Según el triaje usa un modelo u otro» | Opus planifica las tareas L, Sonnet ejecuta y Haiku se usa en subagentes. El triaje decide sobre todo el *flujo*. |
-| «Crea tests sin ser consciente» | Claude añade un test cuando la lógica no es trivial, como norma. En 1.1.0 pasa a comprobarse (ver hoja de ruta). |
+| «Crea tests sin ser consciente» | Claude añade un test cuando la lógica no es trivial, como norma. Desde 1.1.0 el hook `Stop` lo comprueba (H3) y `/lf:quality-gates` audita el resto de gates (H7). |
 | «En el deploy se corren los tests» | Eso lo hace el CI del proyecto. El arnés produce los tests que ese CI ejecuta. |
 
 ## Declaración de intenciones
@@ -66,7 +67,7 @@ Cada hito se hace en su propia sesión.
 | **H4 — Evals reales** (hecho, 1.0.5; ADR 0026) | Casos sacados de tareas reales: un bug Symfony con test, un componente Vue, un N+1, un gate que debe bloquear. `scripts/evals.sh` guarda un resumen, lo compara con la ejecución anterior y marca regresiones. Lo lanza el mantenedor. | 3, 4 |
 | **H5 — Bucle de automejora** (hecho, 1.0.6; ADR 0027) | `/lf:improve`, solo para el mantenedor. Cruza la telemetría con las evals, propone 1–3 cambios con hipótesis y métrica, se miden y se registran como ADR. | 5 |
 | **H6 — MCP opcionales en el setup** (hecho, 1.0.7; ADR 0028) | `/lf:setup` pregunta qué MCP montar (ninguno por defecto) y encadena `/lf:mcp` para el onboarding: Playwright (QA), GitHub, Atlassian (Jira) y Figma. Cada uno se instala con alcance de usuario y tiene una ficha en `plugins/lf/docs/MCP.md`: para qué sirve, coste de contexto, permisos (`allow`/`ask`) y cuándo es mejor la CLI (`gh` antes que el MCP de GitHub). Atlassian y Figma existen como conectores de claude.ai: se documenta esa vía antes que un servidor local. | 1, 4 |
-| **H7 — Auditoría de quality gates** | Skill `lf:quality-gates`: comprueba el repo o portal actual contra los gates del equipo y lista qué cumple, qué falta y el paso para corregirlo, para dejarlo a punto rápido. El checklist vive en el perfil (`profiles/web.md`, sacado del informe Quality Gates del equipo web) y se actualiza con cada versión del informe; comparte fuente con H3. | 1, 4 |
+| **H7 — Auditoría de quality gates** (hecho, 1.1.0; ADR 0029) | Skill `lf:quality-gates`: comprueba el repo o portal actual contra los gates del equipo y lista qué cumple, qué falta y el paso para corregirlo, para dejarlo a punto rápido. El checklist vive en el perfil (`profiles/web.md`, sacado del informe Quality Gates del equipo web) y se actualiza con cada versión del informe; comparte fuente con H3. | 1, 4 |
 
 ### Privacidad de la telemetría
 

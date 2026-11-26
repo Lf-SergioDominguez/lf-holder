@@ -10,6 +10,23 @@
 
 El **nivel AA es el estándar de facto** para cumplimiento legal y buenas prácticas.
 
+### Versión y estado legal (2026-11)
+
+- **Objetivo: WCAG 2.2 AA.** Incluye todo WCAG 2.1 AA; la versión vigente es la de 2024-12-12 (W3C prevé publicarla como ISO/IEC 40500:2026).
+- **UE**: EN 301 549 **v4.1.1** (publicada 2026-09-02) toma WCAG 2.2 A/AA como referencia y retira el criterio 4.1.1 Parsing. Todavía **no** da presunción de conformidad hasta que la Comisión la cite en el Diario Oficial: mientras tanto la referencia legal sigue siendo **v3.2.1 (WCAG 2.1 AA)**. La Ley Europea de Accesibilidad (EAA) se aplica desde 2025-06-28. Apunta a 2.2 AA y no te quedes en 2.1.
+- **WCAG 3.0** sigue como Working Draft (última actualización 2026-03), sin fecha, y no sustituye a WCAG 2: no la uses como criterio de auditoría.
+
+### Criterios nuevos de WCAG 2.2 (A/AA)
+
+| Criterio | Nivel | Qué exige |
+| -------- | ----- | --------- |
+| 2.4.11 Focus Not Obscured (Minimum) | AA | El elemento enfocado no queda totalmente tapado por contenido fijo (cabeceras sticky, banners de cookies) |
+| 2.5.7 Dragging Movements | AA | Todo arrastre tiene alternativa de un solo puntero (botones, clic) |
+| 2.5.8 Target Size (Minimum) | AA | Objetivos táctiles/clic de al menos 24×24 px CSS, o con espaciado equivalente |
+| 3.2.6 Consistent Help | A | La ayuda (contacto, chat) aparece en el mismo sitio en todas las páginas |
+| 3.3.7 Redundant Entry | A | No pedir de nuevo datos ya introducidos en el mismo proceso |
+| 3.3.8 Accessible Authentication (Minimum) | AA | Login sin test cognitivo: permite pegar contraseñas y gestores, sin CAPTCHA de transcribir/recordar |
+
 ### Framework POUR
 
 Las 4 categorías principales de WCAG:
@@ -123,7 +140,7 @@ Toda funcionalidad debe ser operable solo con teclado:
 </div>
 ```
 
-### Focus visible — Nivel AA — Criterio 2.4.7 / 2.4.11
+### Focus visible — Nivel AA — Criterios 2.4.7 y 2.4.11 (Focus Not Obscured, WCAG 2.2)
 
 ```css
 /* ❌ Nunca eliminar el outline sin reemplazarlo */
@@ -360,7 +377,8 @@ a:focus-visible {
 | Lang no declarado en `<html>` | 3.1.1    | A     | `<html lang="es">`                      |
 | Trampas de teclado            | 2.1.2    | A     | Permitir salir con Escape/Tab           |
 | Vídeos sin subtítulos         | 1.2.2    | A     | `<track kind="captions">`               |
-| Texto de link genérico        | 2.4.6    | AA    | Links descriptivos, no "haz click aquí" |
+| Texto de link genérico        | 2.4.4    | A     | Links descriptivos, no "haz click aquí" |
+| Objetivos táctiles < 24×24 px | 2.5.8    | AA    | `min-width/min-height: 24px` o espaciado |
 | Zoom desactivado              | 1.4.4    | AA    | No usar `maximum-scale=1`               |
 
 ---

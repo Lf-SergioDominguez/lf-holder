@@ -237,12 +237,16 @@ Mide el tiempo desde que el navegador solicita una página hasta que recibe el p
 \*TBT (Total Blocking Time) es el proxy de lab para INP.
 
 ```js
-// Medir Core Web Vitals con la librería web-vitals
-import { getLCP, getINP, getCLS, getFCP, getTTFB } from "web-vitals";
+// Medir Core Web Vitals con la librería web-vitals (v5: funciones onXXX; las getXXX ya no existen)
+import { onLCP, onINP, onCLS, onFCP, onTTFB } from "web-vitals";
 
-getLCP(console.log);
-getINP(console.log);
-getCLS(console.log);
-getFCP(console.log);
-getTTFB(console.log);
+onLCP(console.log);
+onINP(console.log);
+onCLS(console.log);
+onFCP(console.log);
+onTTFB(console.log);
 ```
+
+Para saber *qué* elemento o interacción causa el problema, importa de `web-vitals/attribution` (mismas funciones, con una propiedad `attribution` extra).
+
+Umbrales vigentes en 2026-11 (percentil 75 de visitas reales, 28 días; sin cambios desde que INP sustituyó a FID en 2024-03): LCP ≤ 2,5 s, INP ≤ 200 ms, CLS ≤ 0,1.

@@ -241,6 +241,16 @@ hcheck "$(grep -c 'claude mcp add' "$mcpcmd")" "0" "mcp.md: no copia comandos de
 [ "$(sed -n '2,5p' "$setupcmd" | grep '^argument-hint' | grep -c -- '--mcp=')" = 1 ]; hcheck "$?" "0" "setup.md: argument-hint acepta --mcp="
 grep -q '^## 3b\. MCP elegidos' "$setupcmd"; hcheck "$?" "0" "setup.md: paso 3b encadena lf:mcp"
 grep -q 'lf:mcp' "$setupcmd"; hcheck "$?" "0" "setup.md: invoca lf:mcp"
+# skill quality-gates (H7): forma, cita el script, no edita
+qgskill="$ROOT/plugins/lf/skills/quality-gates/SKILL.md"
+hcheck "$(sed -n '1p' "$qgskill")" "---" "quality-gates: abre frontmatter"
+hcheck "$(sed -n '2,6p' "$qgskill" | grep -c -E '^(name: quality-gates|description:|argument-hint:)')" "3" "quality-gates: trae name, description y argument-hint"
+hcheck "$(sed -n '2,6p' "$qgskill" | grep -c '^disable-model-invocation')" "0" "quality-gates: invocable también por el modelo"
+hcheck "$(sed -n '2,6p' "$qgskill" | grep '^allowed-tools' | grep -c -E '\b(Edit|Write)\b')" "0" "quality-gates: sin Edit ni Write"
+grep -q 'scripts/quality-gates.mjs' "$qgskill"; hcheck "$?" "0" "quality-gates: cita scripts/quality-gates.mjs"
+[ -f "$ROOT/plugins/lf/scripts/quality-gates.mjs" ]; hcheck "$?" "0" "quality-gates: el script citado existe"
+grep -q 'quality-gates' "$ROOT/plugins/lf/README.md"; hcheck "$?" "0" "README: menciona quality-gates"
+grep -q '/lf:quality-gates' "$ROOT/plugins/lf/profiles/web.md"; hcheck "$?" "0" "web.md: menciona /lf:quality-gates en Gates"
 # telemetry.mjs: send con un gh falso, frecuencia, estado y off
 TEL="$ROOT/plugins/lf/scripts/telemetry.mjs"; tc="$mtmp/tel"; mkdir -p "$tc/lf"
 printf '#!/bin/sh\necho "$@" > "%s/gh.args"\necho https://github.com/x/y/issues/1\n' "$mtmp" > "$mtmp/gh"; chmod +x "$mtmp/gh"
@@ -380,6 +390,23 @@ for sgc in list key; do
 done
 ln -s "$SG" "$sgd/link.mjs"
 [ "$(node "$sgd/link.mjs" --check "$ROOT/plugins/lf/profiles/web.md" src/Foo.php | cut -f2)" = code ] && { ok=$((ok+1)); echo "  ok   ejecución directa bajo symlink"; } || { fail=$((fail+1)); echo "  FAIL ejecución bajo symlink"; }
+sgk=$(node --input-type=module -e "import {loadGates} from '$SG'; import fs from 'node:fs'; const c=Object.values(loadGates(fs.readFileSync('$ROOT/plugins/lf/profiles/web.md','utf8')).checks); const n=(s)=>c.filter((x)=>x.stack===s).length; console.log(c.length, n('symfony'), n('wordpress'), n('node'), new Set(c.map((x)=>x.gate)).size)" 2>&1)
+[ "$sgk" = "31 10 10 11 8" ] && { ok=$((ok+1)); echo "  ok   web.md: 31 checks (8 gates, 3 stacks)"; } || { fail=$((fail+1)); echo "  FAIL checks de web.md: $sgk"; }
+sgkw=$(node --input-type=module -e "import {loadGates} from '$SG'; import fs from 'node:fs'; const g=loadGates(fs.readFileSync('$ROOT/plugins/lf/profiles/web.md','utf8')); console.log(g.checks['phpstan-symfony'].composer[0], g.checks['secrets-node'].github)" 2>&1)
+[ "$sgkw" = "phpstan/phpstan secret-scanning" ] && { ok=$((ok+1)); echo "  ok   check parseado (lista y escalar)"; } || { fail=$((fail+1)); echo "  FAIL check parseado: $sgkw"; }
+sgcheck() { # sgcheck <nombre> <líneas del check> <fragmento esperado en el error>
+  printf '```yaml gates\ngates:\n  code: ["a"]\n  checks:\n    x:\n%b```\n' "$2" > "$sgd/$1.md"
+  local err rc; err=$(node "$SG" --check "$sgd/$1.md" a 2>&1 >/dev/null); rc=$?
+  if [ "$rc" -ne 0 ] && printf '%s' "$err" | grep -qF -- "$3"; then ok=$((ok+1)); echo "  ok   check inválido ($1) -> error"; else fail=$((fail+1)); echo "  FAIL check inválido ($1) rc=$rc: $err"; fi
+}
+sgcheck sin-fix '      gate: "Formato"\n      stack: "node"\n      npm: ["prettier"]\n' 'falta "fix"'
+sgcheck sin-gate '      stack: "node"\n      npm: ["prettier"]\n      fix: "f"\n' 'falta "gate"'
+sgcheck stack-malo '      gate: "Formato"\n      stack: "python"\n      npm: ["x"]\n      fix: "f"\n' 'stack "python" no válido'
+sgcheck sin-detector '      gate: "Formato"\n      stack: "node"\n      fix: "f"\n' 'al menos un detector'
+sgcheck detector-vacio '      gate: "Formato"\n      stack: "node"\n      npm: []\n      fix: "f"\n' 'al menos un detector'
+sgcheck clave-rara '      gate: "Formato"\n      stack: "node"\n      npm: ["x"]\n      fix: "f"\n      foo: "bar"\n' 'clave desconocida "foo"'
+sgcheck github-malo '      gate: "Secretos"\n      stack: "node"\n      github: "otro"\n      fix: "f"\n' 'github "otro" no válido'
+sgcheck lista-mala '      gate: "Formato"\n      stack: "node"\n      npm: "x"\n      fix: "f"\n' 'debe ser una lista'
 rm -rf "$sgd"
 
 echo; echo "stop-gate.mjs (hook Stop):"

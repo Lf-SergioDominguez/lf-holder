@@ -88,6 +88,20 @@ Disallow: /*?*          # Bloquea URLs con parámetros (cuidado: muy agresivo)
 | **Archivos en subdirectorios**     | `ejemplo.com/blog/robots.txt` no tiene efecto        | Solo funciona en la raíz                             |
 | **Usar `crawl-delay` para Google** | Google lo ignora                                     | Usar Search Console para ajustar crawl rate          |
 
+Google solo interpreta `user-agent`, `allow`, `disallow` y `sitemap` (RFC 9309) y lee como máximo 500 KiB; cualquier otro campo se ignora.
+
+### Bots de IA (2026-11)
+
+Los rastreadores de **entrenamiento** y los de **búsqueda/asistente** se controlan por separado: decide cada grupo, no «la IA» en bloque.
+
+| Objetivo | Token en robots.txt | Nota |
+| -------- | ------------------- | ---- |
+| No entrenar modelos | `GPTBot`, `ClaudeBot`, `CCBot`, `Google-Extended` | `Google-Extended` es solo un token de control (no aparece en logs) y no afecta a Google Search ni a AI Overviews |
+| Seguir citable en buscadores de IA | permitir `OAI-SearchBot`, `Claude-SearchBot`, `PerplexityBot` | Bloquearlos te quita de las respuestas de esos productos |
+| Agentes que actúan a petición de un usuario | `ChatGPT-User`, `Claude-User`, `Perplexity-User`, `Google-Agent` | Algunos ignoran robots.txt: para limitarlos usa control de acceso real (WAF, autenticación) |
+
+Un grupo `User-agent: *` cubre a cualquier bot sin grupo propio, también los de IA desconocidos. `llms.txt` **no** lo usa Google Search (lo ignora según su guía de IA generativa): no lo cuentes como mejora SEO.
+
 ### Robots.txt robusto para sitio típico
 
 ```robots

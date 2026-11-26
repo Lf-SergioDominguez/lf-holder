@@ -43,3 +43,4 @@ Las decisiones de 0001–0015 conservan el texto original; las cifras de coste s
 | [0026](0026-evals-reales.md) | 2026-11-25 | Evals reales: casos 06–09, `evals.sh` y comparador de regresiones |
 | [0027](0027-bucle-automejora.md) | 2026-11-26 | Bucle de automejora: `/lf:improve` cruza evals y telemetría por versión y propone cambios |
 | [0028](0028-mcp-opcionales-con-onboarding-guiado.md) | 2026-11-26 | MCP opcionales con onboarding guiado: `/lf:mcp`, `--mcp=` y fichas en `MCP.md` |
+| [0029](0029-auditoria-quality-gates.md) | 2026-11-26 | Auditoría de quality gates: `/lf:quality-gates`, `gates.checks` y `quality-gates.mjs` |

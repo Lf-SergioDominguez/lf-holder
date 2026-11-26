@@ -23,6 +23,14 @@ Toda petición M y toda entrega llevan una línea `Hecho cuando: <comprobación 
 
 Empieza en `medium` (es el valor por defecto del arnés). Sube con `/effort high` o escribe `ultrathink` en ese turno solo si la tarea se atasca; no empieces alto «por si acaso».
 
+Lo que dicen las guías oficiales de Sonnet 5.5 y Opus 5.5 (verificadas 2026-11-26) y cómo se traduce aquí:
+
+- Los niveles se recalibraron entre modelos: `medium` de Opus 5.5 iguala o supera al `high` de Opus 5. No copies el esfuerzo de un modelo anterior; mide.
+- En `low` y `medium` Sonnet 5.5 puede parar a consultar antes de acabar, y en `low` a veces da por hecho un cambio sin ejecutar una comprobación real. De ahí `Hecho cuando:` en toda entrega M: obliga a nombrar y lanzar la comprobación.
+- Añade tests, docs o ficheros no pedidos, más cuanto mayor es el esfuerzo. Pedir el alcance exacto («solo esto; si ves algo más, menciónalo al final») es la regla de «Código mínimo» de `CLAUDE.md`.
+- En `xhigh`/`max` revisa y verifica por su cuenta, incluso lanzando subagentes revisores: cuesta más tiempo y tokens, y por eso solo tras aprobación y no como rutina.
+- No pidas «piensa menos» en el prompt: baja el esfuerzo, que es lo fiable.
+
 ## Patrones a evitar
 
 - Pedir «mejora», «revisa todo» o «optimiza» sin alcance ni criterio.

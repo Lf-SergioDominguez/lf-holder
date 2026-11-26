@@ -4,6 +4,25 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-11-26
+
+H7 de la hoja de ruta, la última: auditoría de quality gates. Cierra la hoja de ruta 1.1.0 (H1–H7).
+
+### Añadido
+
+- `/lf:quality-gates [carpeta]` (`plugins/lf/skills/quality-gates/SKILL.md`): comprueba un repo contra los gates del perfil activo y lista qué cumple (`ok`), qué cumple a medias (`partial`), qué falta (`missing`) y qué no pudo comprobar, con el paso para corregirlo. Solo informa; los `gh api` GET los lanza la skill y, si `gh` falla, el check queda «no comprobado» (ADR 0029).
+- `plugins/lf/scripts/quality-gates.mjs`: detecta stacks (Symfony, WordPress, Node) y evalúa cada check sobre el árbol del repo; saca JSON. No usa red ni ejecuta nada del repo. Tests en `tests/quality-gates.test.mjs`.
+- `profiles/web.md`: clave `checks` en el bloque `gates` con 31 checks (8 gates × 3 stacks), cada uno con detectores y `fix`. El hook `Stop` la ignora.
+
+### Cambiado
+
+- `loadGates` (`hooks/stop-gate.mjs`) valida `checks` (campos obligatorios, `stack` cerrado, al menos un detector, sin claves desconocidas); el hook `Stop` se comporta igual.
+- `scripts/test-hooks.sh` suma casos de `checks` y de forma de la skill (215 comprobaciones).
+- Revisión de documentos contra fuentes vigentes (2026-11-26):
+  - `seo-audit/knowledge`: WCAG 2.2 AA como objetivo, estado de EN 301 549 v4.1.1 y criterios nuevos (2.4.11, 2.5.7, 2.5.8, 3.2.6, 3.3.7, 3.3.8); FAQPage/HowTo sin rich result en Google; `web-vitals` v5 (`onINP` en lugar de `getINP`); Card Validator de X retirado; bots de IA en robots.txt y `llms.txt`; objetivo táctil 24 px (AA) frente a 44 px (AAA).
+  - `security-and-hardening`: OWASP Top 10:2025, renovación automática de certificados TLS (200/100/47 días, CA/B Forum SC-081), `security.txt` y avisos del Cyber Resilience Act.
+  - `docs/`: precios y caché de Sonnet 5.5, Opus 5.5 y Haiku 5.5 (MODELOS), Atlassian MCP v2 y flags de Playwright (MCP), notas de las guías oficiales de Sonnet 5.5 y Opus 5.5 (PROMPTING). PERMISOS, MEMORIA y ERRORES-COMUNES se revisaron sin cambios.
+
 ## [1.0.7] — 2026-11-26
 
 H6 de la hoja de ruta: MCP opcionales con onboarding guiado. Queda H7; 1.1.0 llegará al cerrar H7.
