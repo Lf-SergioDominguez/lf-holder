@@ -14,7 +14,8 @@
 #   /plugin install lf@lefebvriano-holder
 #   /lf:setup   (ejecuta este script desde la caché del plugin)
 #
-# Uso: plugins/lf/scripts/install.sh [--only=deps,claude-md,settings,config,taste] [--with-taste] [--profile=<nombre>] [--telemetry=on|off] [--telemetry-every=weekly|monthly] [--dry-run] [--no-sandbox] [--windows] [--yes] [--rollback]
+# Uso: plugins/lf/scripts/install.sh [--only=deps,claude-md,settings,config,taste] [--with-taste] [--profile=<nombre>] [--telemetry=on|off] [--telemetry-every=weekly|monthly] [--mcp=<lista>] [--dry-run] [--no-sandbox] [--windows] [--yes] [--rollback]
+#   --mcp=<lista> guarda en config.json los MCP opcionales elegidos (playwright,github,atlassian,figma; coma). Sin flag conserva lo guardado; vacío lo limpia. No ejecuta `claude mcp add`
 #   --with-taste  añade el paso taste a los pasos por defecto
 #   --profile     perfil de equipo para el paso config (por defecto el ya guardado, o generic)
 #   --telemetry   guarda la elección de telemetría opt-in en config.json (por defecto la ya guardada, o off)
@@ -31,7 +32,7 @@ CLAUDE_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 SETTINGS="$CLAUDE_DIR/settings.json"
 BACKUPS="$CLAUDE_DIR/backups"
 ONLY="deps,claude-md,settings,config"
-PROFILE=""; TELEMETRY=""; EVERY=""
+PROFILE=""; TELEMETRY=""; EVERY=""; MCP=""; MCP_SET=0
 WITH_TASTE=0
 DRY=0; NOSANDBOX=0; WINDOWS=0; YES=0; ROLLBACK=0
 
@@ -42,6 +43,7 @@ for arg in "$@"; do
     --profile=*) PROFILE="${arg#--profile=}" ;;
     --telemetry=*) TELEMETRY="${arg#--telemetry=}" ;;
     --telemetry-every=*) EVERY="${arg#--telemetry-every=}" ;;
+    --mcp=*) MCP="${arg#--mcp=}"; MCP_SET=1 ;;
     --dry-run) DRY=1 ;;
     --no-sandbox) NOSANDBOX=1 ;;
     --windows) WINDOWS=1 ;;
@@ -55,6 +57,10 @@ done
 case ",$ONLY," in *,gsd,*) echo "[lf] el paso gsd ya no existe (ADR 0024); se ignora" >&2 ;; esac
 case "$TELEMETRY" in ""|on|off) ;; *) echo "--telemetry admite on u off, no «$TELEMETRY»" >&2; exit 1 ;; esac
 case "$EVERY" in ""|weekly|monthly) ;; *) echo "--telemetry-every admite weekly o monthly, no «$EVERY»" >&2; exit 1 ;; esac
+mcp_re='(playwright|github|atlassian|figma)'
+if [ -n "$MCP" ] && ! [[ "$MCP" =~ ^$mcp_re(,$mcp_re)*$ ]]; then
+  echo "--mcp admite playwright, github, atlassian o figma (separados por comas, sin espacios ni vacíos), no «$MCP»" >&2; exit 1
+fi
 case "$PROFILE" in *[!a-z0-9-]*) echo "--profile solo admite minúsculas, dígitos y guiones" >&2; exit 1 ;; esac
 
 log()  { printf '\033[1;34m[lf]\033[0m %s\n' "$*"; }
@@ -249,9 +255,11 @@ if step config; then
   case "${TELEMETRY:-$(jq -r 'if .telemetry == true then "on" else "off" end' <<<"$cur")}" in on) tel=true ;; *) tel=false ;; esac
   every="${EVERY:-$(jq -r '(.telemetryEvery // "weekly") | if . == "month-ends" then "monthly" else . end' <<<"$cur")}"
   step taste && taste=true || taste=$(jq '.optional.taste // false' <<<"$cur")
-  new=$(jq -n --argjson cur "$cur" --arg p "$prof" --argjson t "$tel" --arg every "$every" --argjson taste "$taste" \
+  if [ "$MCP_SET" -eq 1 ]; then mcp=$(jq -cn --arg l "$MCP" '$l | split(",") | map(select(. != "")) | unique')
+  else mcp=$(jq -c '(.optional.mcp // []) | if type == "array" then map(select(. == "playwright" or . == "github" or . == "atlassian" or . == "figma")) | unique else [] end' <<<"$cur"); fi
+  new=$(jq -n --argjson mcp "$mcp" --argjson cur "$cur" --arg p "$prof" --argjson t "$tel" --arg every "$every" --argjson taste "$taste" \
         --argjson win "$([ "$IS_WINDOWS" -eq 1 ] && echo true || echo false)" \
-        '$cur + {version: 1, profile: $p, telemetry: $t, telemetryEvery: $every, windows: $win, optional: {taste: $taste}}')
+        '$cur + {version: 1, profile: $p, telemetry: $t, telemetryEvery: $every, windows: $win, optional: {taste: $taste, mcp: $mcp}}')
   if [ "$DRY" -eq 1 ]; then
     echo "  (dry-run) cp $ROOT/profiles/*.md $CLAUDE_DIR/lf/profiles/"
     echo "  (dry-run) escribir en $cfg: $new"

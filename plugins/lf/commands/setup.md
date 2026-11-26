@@ -1,6 +1,6 @@
 ---
 description: Configura el arnés LF en ~/.claude (CLAUDE.md, settings, docs) desde el plugin instalado.
-argument-hint: "[--with-taste] [--profile=<nombre>] [--telemetry=on|off] [--telemetry-every=weekly|monthly] [--only=…] [--no-sandbox] [--windows] [--rollback]"
+argument-hint: "[--with-taste] [--profile=<nombre>] [--telemetry=on|off] [--telemetry-every=weekly|monthly] [--mcp=playwright,github,atlassian,figma] [--only=…] [--no-sandbox] [--windows] [--rollback]"
 disable-model-invocation: true
 ---
 
@@ -34,7 +34,7 @@ jq -r '.plugins["lf@lefebvriano-holder"][0].installPath // empty' "${CLAUDE_CONF
 
 En modo Windows, convierte `PLUGIN_ROOT` con `cygpath -u "<ruta>"` venga de donde venga (`${CLAUDE_PLUGIN_ROOT}` o `installPath` llegan como `C:\…`, y Git Bash se come las barras invertidas). Después comprueba que `PLUGIN_ROOT/scripts/install.sh` existe.
 
-`$ARGUMENTS` solo admite los flags de `argument-hint` (`--with-taste`, `--profile=<nombre>`, `--telemetry=on|off`, `--telemetry-every=weekly|monthly`, `--only=<pasos separados por comas>`, `--rollback`, `--no-sandbox`, `--windows`). Si contiene cualquier otra cosa, no ejecutes nada y dilo. Si no existe o `jq` no devuelve nada, para y di que el plugin `lf` no está instalado (`/plugin install lf@lefebvriano-holder`).
+`$ARGUMENTS` solo admite los flags de `argument-hint` (`--with-taste`, `--profile=<nombre>`, `--telemetry=on|off`, `--telemetry-every=weekly|monthly`, `--mcp=<lista>` (de `playwright`, `github`, `atlassian`, `figma`; vacío la limpia), `--only=<pasos separados por comas>`, `--rollback`, `--no-sandbox`, `--windows`). Si contiene cualquier otra cosa, no ejecutes nada y dilo. Si no existe o `jq` no devuelve nada, para y di que el plugin `lf` no está instalado (`/plugin install lf@lefebvriano-holder`).
 
 ## 0b. Guía: perfil, telemetría y opcionales
 
@@ -47,9 +47,11 @@ Haz **una sola llamada** a AskUserQuestion con estas preguntas, omitiendo las qu
 3. **Opcionales** (`multiSelect: true`, «sin marcar ninguno, solo se aplica la base»), uno por pendiente, quitando los dados por flag (`--with-taste`) o ya activos:
    - **taste-skill** (ya activo si `~/.claude/settings.json` tiene `enabledPlugins["taste-skill@taste-skill"]`): skill de diseño anti-slop (dirección artística, imágenes reales, inspector en navegador). Más potente que `frontend-design`, pero más pesada en contexto; el inspector necesita Node 22+ y Chrome/Edge/Chromium. Solo el plugin principal, no `taste-skill-classics`.
 
+4. **MCP opcionales** (`multiSelect: true`; omítela si hay `--mcp=`): «¿Qué MCP quieres montar? Sin marcar ninguno, no se monta ninguno». Una opción por MCP de `PLUGIN_ROOT/docs/MCP.md` (`playwright`, `github`, `atlassian`, `figma`), con su `Para qué` y `Contexto` como descripción. Pon como marcados los de `optional.mcp` de un `config.json` previo. Solo se guarda la elección; el alta es el paso 3b.
+
 Windows ya se resolvió en el paso 0a: no se pregunta de nuevo; el instalador lo registra en `config.json`.
 
-Con las respuestas, sustituye `$ARGUMENTS` por `--only=deps,claude-md,settings,config` más `,taste` según lo elegido (también lo dado por flag), añade `--profile=<elegido>`, `--telemetry=on|off` y, si eligió 2–3, `--telemetry-every=<valor>`, quita los `--with-*` ya incorporados y conserva `--no-sandbox` y `--windows`. Un paso desmarcado no se ejecuta: taste-skill no se activa solo.
+Con las respuestas, sustituye `$ARGUMENTS` por `--only=deps,claude-md,settings,config` más `,taste` según lo elegido (también lo dado por flag), añade `--profile=<elegido>`, `--telemetry=on|off`, `--mcp=<elegidos separados por comas, o vacío>` y, si eligió 2–3, `--telemetry-every=<valor>`, quita los `--with-*` ya incorporados y conserva `--no-sandbox` y `--windows`. Un paso desmarcado no se ejecuta: taste-skill no se activa solo. Recuerda `MCP_ELEGIDOS` (los de `--mcp=` o los marcados) para el paso 3b.
 
 ## 1. Simulación
 
@@ -64,6 +66,10 @@ Este paso escribe en `~/.claude` (settings.json, CLAUDE.md, backups), que está 
 ## 3. Dependencias
 
 Si la salida contiene un aviso de dependencias del sandbox («sin TTY: ejecuta tú en un terminal: sudo apt-get install …»), muestra ese comando tal cual al usuario para que lo lance él con `!` o en un terminal. No ejecutes `sudo`.
+
+## 3b. MCP elegidos
+
+Solo si el paso 2 terminó bien y `MCP_ELEGIDOS` no está vacío (con `--only=` sin `config` o con `--rollback` se salta): invoca `lf:mcp` con la herramienta Skill y esos nombres como argumento. Si no hay elegidos, no digas nada de MCP. Si el usuario deniega el alta, sigue al cierre con los `! …` pendientes.
 
 ## 4. Cierre
 

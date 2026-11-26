@@ -4,6 +4,20 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+## [1.0.7] — 2026-11-26
+
+H6 de la hoja de ruta: MCP opcionales con onboarding guiado. Queda H7; 1.1.0 llegará al cerrar H7.
+
+### Añadido
+
+- `/lf:mcp [playwright|github|atlassian|figma …]` (`plugins/lf/commands/mcp.md`): onboarding de cada MCP (ya montado, requisitos, alta con aviso de permiso, login OAuth, verificación, prueba de solo lectura, permisos y cómo deshacer). Sin argumento usa los elegidos en `config.json` (ADR 0028).
+- `plugins/lf/docs/MCP.md`: ficha por MCP con 9 campos (para qué, vía, requisitos, comando, auth, verificar, contexto, permisos, cuándo es mejor la CLI), según las docs oficiales. Alcance `user`, sin tokens literales; GitHub con `headersHelper` y `gh auth token`.
+- `install.sh --mcp=<lista>`: valida y guarda `optional.mcp` en `config.json`; sin flag conserva lo guardado y no ejecuta `claude mcp add`.
+
+### Cambiado
+
+- `/lf:setup` pregunta qué MCP montar (ninguno por defecto; 4.ª pregunta de 0b), acepta `--mcp=` y, tras instalar, encadena `/lf:mcp` con los elegidos (paso 3b).
+
 ## [1.0.6] — 2026-11-26
 
 H5 de la hoja de ruta: bucle de automejora. Quedan H6–H7; 1.1.0 llegará al cerrar H7.

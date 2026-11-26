@@ -199,7 +199,48 @@ HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --tel
 HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --telemetry-every=daily >/dev/null 2>&1; hcheck "$?" "1" "install config: --telemetry-every inválido falla"
 jq '.optional.gsd = true' "$cc/lf/config.json" > "$mtmp/c.json" && cp "$mtmp/c.json" "$cc/lf/config.json"
 HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config,gsd >/dev/null 2>&1
-hcheck "$(jq -c '.optional | keys' "$cc/lf/config.json")" '["taste"]' "install config: elimina optional.gsd previo"
+hcheck "$(jq -c '.optional | keys' "$cc/lf/config.json")" '["mcp","taste"]' "install config: elimina optional.gsd previo"
+HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --mcp=github,playwright,github >/dev/null 2>&1
+hcheck "$(jq -c '.optional.mcp' "$cc/lf/config.json")" '["github","playwright"]' "install config: --mcp guarda la lista sin duplicados"
+HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config >/dev/null 2>&1
+hcheck "$(jq -c '.optional.mcp' "$cc/lf/config.json")" '["github","playwright"]' "install config: sin --mcp conserva la lista"
+HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --mcp=nope >/dev/null 2>&1; hcheck "$?" "1" "install config: --mcp inválido falla"
+hcheck "$(jq -c '.optional.mcp' "$cc/lf/config.json")" '["github","playwright"]' "install config: --mcp inválido no escribe"
+cp "$cc/lf/config.json" "$mtmp/c.before"
+for bad in "github," ",github" "github,,figma" "github, figma"; do
+  HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config "--mcp=$bad" >/dev/null 2>&1; hcheck "$?" "1" "install config: --mcp=«$bad» falla"
+done
+cmp -s "$cc/lf/config.json" "$mtmp/c.before"; hcheck "$?" "0" "install config: --mcp mal formado deja el config intacto"
+jq '.optional.mcp = ["foo","figma"]' "$cc/lf/config.json" > "$mtmp/c.json" && cp "$mtmp/c.json" "$cc/lf/config.json"
+HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config >/dev/null 2>&1
+hcheck "$(jq -c '.optional.mcp' "$cc/lf/config.json")" '["figma"]' "install config: sin --mcp descarta valores guardados fuera de la lista"
+HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$cc" bash "$LF_INSTALL" --only=config --mcp= >/dev/null 2>&1
+hcheck "$(jq -c '.optional.mcp' "$cc/lf/config.json")" '[]' "install config: --mcp= limpia la lista"
+hcheck "$(jq -c '.optional.mcp' "$mtmp/vacio/lf/config.json")" '[]' "install config: sin --mcp en instalación nueva es []"
+mcpdoc="$ROOT/plugins/lf/docs/MCP.md"; mcpok=1
+hcheck "$(grep -c '^## ' "$mcpdoc")" "4" "MCP.md: exactamente 4 fichas"
+for f in "Para qué" "Vía" "Requisitos" "Comando" "Auth" "Verificar" "Contexto" "Permisos" "CLI mejor cuando"; do
+  [ "$(grep -c "^\*\*$f\*\*:" "$mcpdoc")" = 4 ] || mcpok=0
+done
+hcheck "$mcpok" "1" "MCP.md: cada ficha trae los 9 campos"
+hcheck "$(grep '^\*\*Comando\*\*:' "$mcpdoc" | grep -c -- '--scope user')" "4" "MCP.md: cada Comando lleva --scope user"
+hcheck "$(grep -c -E 'gh[pousr]_[A-Za-z0-9]|github_pat_|Bearer [A-Za-z0-9_-]' "$mcpdoc")" "0" "MCP.md: sin tokens literales"
+# GitHub: el headersHelper del comando debe emitir un JSON de cabeceras con el token de gh
+mcpjson="$(grep '^\*\*Comando\*\*:' "$mcpdoc" | grep ' github ' | sed -n "s/.*github '\({.*}\)'\`.*/\1/p")"
+mkdir -p "$mtmp/fakegh"; printf '#!/bin/sh\n[ "$*" = "auth token" ] || exit 1\necho tok123\n' > "$mtmp/fakegh/gh"; chmod +x "$mtmp/fakegh/gh"
+hcheck "$(jq -e '.type=="http" and (.url|startswith("https://api.githubcopilot.com/mcp"))' <<<"$mcpjson" >/dev/null 2>&1; echo $?)" "0" "MCP.md: add-json de GitHub es http con la URL oficial"
+hcheck "$(jq -r .headersHelper <<<"$mcpjson" | PATH="$mtmp/fakegh:$PATH" sh | jq -r .Authorization)" "Bearer tok123" "MCP.md: headersHelper de GitHub emite la cabecera Authorization"
+# /lf:mcp y su integración en /lf:setup
+mcpcmd="$ROOT/plugins/lf/commands/mcp.md"; setupcmd="$ROOT/plugins/lf/commands/setup.md"
+hcheck "$(sed -n '1p' "$mcpcmd")" "---" "mcp.md: abre frontmatter"
+hcheck "$(sed -n '2,5p' "$mcpcmd" | grep -c -E '^(description|argument-hint):')" "2" "mcp.md: trae description y argument-hint"
+hcheck "$(sed -n '2,5p' "$mcpcmd" | grep -c '^disable-model-invocation')" "0" "mcp.md: invocable por Skill desde setup"
+mcpnames=1; for n in playwright github atlassian figma; do grep -q "\`$n\`" "$mcpcmd" || mcpnames=0; grep -q -i "^## $n\$" "$mcpdoc" || mcpnames=0; done
+hcheck "$mcpnames" "1" "mcp.md: lista los 4 MCP y cada uno tiene ficha"
+hcheck "$(grep -c 'claude mcp add' "$mcpcmd")" "0" "mcp.md: no copia comandos de alta de MCP.md"
+[ "$(sed -n '2,5p' "$setupcmd" | grep '^argument-hint' | grep -c -- '--mcp=')" = 1 ]; hcheck "$?" "0" "setup.md: argument-hint acepta --mcp="
+grep -q '^## 3b\. MCP elegidos' "$setupcmd"; hcheck "$?" "0" "setup.md: paso 3b encadena lf:mcp"
+grep -q 'lf:mcp' "$setupcmd"; hcheck "$?" "0" "setup.md: invoca lf:mcp"
 # telemetry.mjs: send con un gh falso, frecuencia, estado y off
 TEL="$ROOT/plugins/lf/scripts/telemetry.mjs"; tc="$mtmp/tel"; mkdir -p "$tc/lf"
 printf '#!/bin/sh\necho "$@" > "%s/gh.args"\necho https://github.com/x/y/issues/1\n' "$mtmp" > "$mtmp/gh"; chmod +x "$mtmp/gh"
