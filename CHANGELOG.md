@@ -4,6 +4,15 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+## [1.0.6] — 2026-11-26
+
+H5 de la hoja de ruta: bucle de automejora. Quedan H6–H7; 1.1.0 llegará al cerrar H7.
+
+### Añadido
+
+- `/lf:improve` (`plugins/lf/commands/improve.md`), solo para el mantenedor y con guard (se niega sin `scripts/evals.sh` en el cwd): ejecuta `scripts/improve.mjs`, redacta 1–3 propuestas con hipótesis, cambio, métrica y cómo medir, y las guarda en `docs/improve/AAAA-MM-DD.md`. Solo propone: no edita el plugin ni lanza evals (ADR 0027).
+- `scripts/improve.mjs`: cruza por versión las evals (`summary.jsonl`) y la telemetría (clon de `lf-holder-metrics`, `--metrics` o `$LF_METRICS_DIR`), y señala casos sin señal (|Δ| < 0,05) y regresiones entre versiones (score −0,10; coste, tokens/petición, contexto, `deny` y errores de hooks +30 %; autocompact +5 puntos). Sin datos o con regresiones sale 0. Tests en `tests/improve.test.mjs`.
+
 ## [1.0.5] — 2026-11-25
 
 H4 de la hoja de ruta: evals reales. Quedan H5–H7; 1.1.0 llegará al cerrar H7.

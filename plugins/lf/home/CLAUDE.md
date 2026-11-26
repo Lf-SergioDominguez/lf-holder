@@ -1,4 +1,4 @@
-<!-- lf-harness 1.0.5 -->
+<!-- lf-harness 1.0.6 -->
 # Arnés LF — reglas globales
 
 Equipo web Lefebvre: PHP/Symfony, WordPress, Node, Astro, React, Vue, MySQL. La ruta y la forma de ejecutar cada proyecto las indica su propio `CLAUDE.md`.
