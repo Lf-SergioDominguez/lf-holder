@@ -81,6 +81,16 @@ test('CLI: escribe el digest y --mark guarda lastRun', () => {
   assert.match(readState(path.join(proj, 'memory')).lastRun, /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ$/);
 });
 
+test('--mark con cwd dentro de la memoria del proyecto no crea otro proyecto', () => {
+  const { config, proj } = fixture();
+  const memoryDir = path.join(proj, 'memory');
+  fs.mkdirSync(memoryDir);
+  assert.equal(projectDir(memoryDir, config), proj);
+  execFileSync('node', [SCRIPT, '--mark', '--at', '2026-11-20T00:00:00Z', '--config', config], { cwd: memoryDir });
+  assert.equal(readState(memoryDir).lastRun, '2026-11-20T00:00:00Z');
+  assert.deepEqual(fs.readdirSync(path.join(config, 'projects')), [path.basename(proj)]);
+});
+
 test('enmascara credenciales pegadas en un prompt', () => {
   const { config, proj } = fixture();
   fs.appendFileSync(path.join(proj, 'aaaaaaaa-1111.jsonl'),

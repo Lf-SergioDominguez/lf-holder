@@ -29,7 +29,12 @@ const clip = (s, n) => {
 };
 
 export function projectDir(cwd, configDir) {
-  return path.join(configDir, 'projects', cwd.replace(/[^a-zA-Z0-9]/g, '-'));
+  const root = path.join(configDir, 'projects');
+  // El fork de /lf:dream puede acabar con cwd dentro de la memoria (p. ej. tras un `cd` para escribir en ella):
+  // si ya estamos en <config>/projects/<proyecto>/…, ese es el proyecto, no uno nuevo derivado de esa ruta.
+  const rel = path.relative(root, cwd);
+  if (rel && !rel.startsWith('..') && !path.isAbsolute(rel)) return path.join(root, rel.split(path.sep)[0]);
+  return path.join(root, cwd.replace(/[^a-zA-Z0-9]/g, '-'));
 }
 
 export function readState(memoryDir) {
