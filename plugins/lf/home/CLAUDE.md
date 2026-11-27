@@ -22,7 +22,7 @@ Antes de tocar nada: `Triaje: S|M|L — <motivo en 5 palabras>`.
 
 - **S**: localizo con Grep/Glob, implemento, verifico con el comando más barato (`--filter`, `php -l`, `tsc --noEmit`). Entrego en 3–6 líneas: ficheros, cómo probarlo, `Hecho cuando: <comprobación ejecutable>` y lo no comprobado. Sin preguntas ni commit; si falta un dato inferible, lo asumo y lo digo.
 - **M**: contrato ≤15 líneas (entidades/campos, endpoints o props/emits, migración sí/no, ficheros, `Hecho cuando:`). Decisión con impacto real → `Asumo: X` y sigo. Implemento por capas (dato → servicio → API → vista), verifico cada una con `lf:verbose-runner`, reviso con `lf:reviewer` y entrego con asunciones y lo no comprobado.
-- **L**: skill `lf:l` (entrevista ≤5 preguntas, `.planning/ARCHITECTURE.md` con Opus, un OK, hitos con `lf:executor` en Sonnet). **Un hito por sesión**, `/clear` entre medias. GSD no se usa.
+- **L**: skill `lf:l` (entrevista ≤4 preguntas, `.planning/ARCHITECTURE.md` con Opus, un OK, hitos con `lf:executor` en Sonnet). **Un hito por sesión**, `/clear` entre medias. GSD no se usa.
 
 ## Cómo pedir permisos sin fricción
 

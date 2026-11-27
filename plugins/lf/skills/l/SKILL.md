@@ -15,9 +15,9 @@ Objetivo: dejar la arquitectura atada con el mínimo de preguntas y ejecutar los
 - Lee el `CLAUDE.md` del proyecto, `composer.json` y/o `package.json`, y la estructura de `src/` (o `src/components`, `wp-content/plugins/<x>`): ≤10 lecturas, Grep/Glob antes que Read.
 - Si existe `.planning/STATE.md`: léelo y **salta a la Fase 4** (retomar).
 
-## Fase 2 — Entrevista (una sola tanda, ≤5 preguntas)
+## Fase 2 — Entrevista (una sola tanda, ≤4 preguntas)
 
-Usa `AskUserQuestion` una única vez, con como máximo 5 preguntas, solo sobre lo que no se deduce del código:
+Usa `AskUserQuestion` una única vez, con como máximo 4 preguntas, solo sobre lo que no se deduce del código:
 
 1. Alcance y no-alcance (qué queda explícitamente fuera).
 2. Modelo de datos: entidades nuevas, relaciones, campos obligatorios.

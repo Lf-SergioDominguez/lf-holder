@@ -61,7 +61,7 @@ Todo lo que instala el arnés (settings globales, CLAUDE.md, plugin, hooks) es c
 - Describe la tarea. Claude la clasifica solo:
   - **S** (bug, texto, estilo, ≤3 ficheros): implementa, verifica y te entrega. Cero preguntas.
   - **M** (endpoint nuevo, componente, entidad + migración): escribe un contrato de 15 líneas, sigue solo, revisa con `lf:reviewer` y entrega con sus asunciones. Corriges después.
-  - **L** (módulo, feature grande): `lf:l` te hace ≤5 preguntas de una vez, escribe `.planning/ARCHITECTURE.md`, pide un OK y ejecuta por hitos con `lf:executor` (un hito por sesión, `/clear` entre medias; el estado queda en `.planning/STATE.md`).
+  - **L** (módulo, feature grande): `lf:l` te hace ≤4 preguntas de una vez, escribe `.planning/ARCHITECTURE.md`, pide un OK y ejecuta por hitos con `lf:executor` (un hito por sesión, `/clear` entre medias; el estado queda en `.planning/STATE.md`).
 - Para discutir la clasificación antes: `/lf:triage <tarea>`. Para forzarla: `/lf:s`, `/lf:m`, `/lf:l`.
 - Modelo: `claude-sonnet` (el más nuevo) por defecto; Haiku para todo subagente ruidoso. Para planificar una L: `/model claude-opus` (el más nuevo) y vuelve a Sonnet para ejecutar. **Fable no se usa en ningún flujo.** Detalle: [MODELOS.md](../plugins/lf/docs/MODELOS.md).
 - Atajos: `/lf:opusplan` (Opus planifica y Sonnet ejecuta), `/lf:ultracode` (sesión entera a xhigh y multiagente); para razonar a fondo en un solo turno escribe `ultrathink` en el prompt.
