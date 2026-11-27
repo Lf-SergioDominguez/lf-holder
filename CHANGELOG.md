@@ -4,6 +4,12 @@ Formato: [Keep a Changelog](https://keepachangelog.com/es/1.1.0/). Versionado se
 
 ## [Unreleased]
 
+## [1.1.1] — 2026-11-27
+
+### Corregido
+
+- `lf:l` (Fase 2) pedía hasta 5 preguntas en la entrevista, pero `AskUserQuestion` admite como máximo 4 por llamada y fallaba. Ahora dice «≤4 preguntas» en `skills/l/SKILL.md`, `README.md`, `home/CLAUDE.md` y `docs/ONBOARDING.md`. `opencode-lf/` queda sin cambios.
+
 ## [1.1.0] — 2026-11-26
 
 H7 de la hoja de ruta, la última: auditoría de quality gates. Cierra la hoja de ruta 1.1.0 (H1–H7).
