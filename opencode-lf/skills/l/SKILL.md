@@ -14,7 +14,7 @@ Objetivo: dejar la arquitectura atada con el mínimo de preguntas y abrir los hi
 
 ## Fase 2 — Entrevista (una sola tanda, ≤5 preguntas)
 
-Usa `AskUserQuestion` una única vez, con como máximo 5 preguntas, solo sobre lo que no se deduce del código:
+Usa la herramienta `question` una única vez, con como máximo 5 preguntas, solo sobre lo que no se deduce del código:
 
 1. Alcance y no-alcance (qué queda explícitamente fuera).
 2. Modelo de datos: entidades nuevas, relaciones, campos obligatorios.

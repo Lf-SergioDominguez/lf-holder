@@ -38,7 +38,7 @@ Antes de tocar nada clasifico la tarea y lo digo: `Triaje: S|M|L — <motivo en 
 2. Implemento.
 3. Verifico con el comando más barato que pruebe el cambio (test concreto con `--filter`, `php -l`, `tsc --noEmit`, `vue-tsc`); si la salida puede superar 40 líneas la delego al agente `@verbose-runner`.
 4. Entrego: resumen de 3–6 líneas, ficheros tocados, cómo probarlo y una línea con lo que no he comprobado y sus riesgos.
-   Sin preguntas, sin AskUserQuestion, sin commit. Si falta un dato imposible de inferir del código, lo asumo, lo digo en una línea y sigo.
+   Sin preguntas, sin la herramienta `question`, sin commit. Si falta un dato imposible de inferir del código, lo asumo, lo digo en una línea y sigo.
 
 ## 3. Flujo M — contrato de un minuto, luego autónomo
 

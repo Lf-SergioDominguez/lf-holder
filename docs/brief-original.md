@@ -1,6 +1,6 @@
 # Brief original: por qué nace lefebvriano-holder
 
-Síntesis del planteamiento inicial (septiembre de 2026) que dio origen al proyecto. Recoge el objetivo, el diagnóstico de partida, las herramientas que se evaluaron y las conclusiones que marcaron el diseño. Las decisiones definitivas, con sus motivos, están en [DECISIONS.md](DECISIONS.md).
+Síntesis del planteamiento inicial (septiembre de 2026) que dio origen al proyecto. Recoge el objetivo, el diagnóstico de partida, las herramientas que se evaluaron y las conclusiones que marcaron el diseño. Las decisiones definitivas, con sus motivos, están en [decisions/](decisions/README.md). Documento histórico: RTK se retiró (ADR 0016) y GSD salió del flujo (ADR 0024).
 
 ## Objetivo
 

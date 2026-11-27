@@ -171,6 +171,7 @@ mkdir -p "$mtmp/hsrc"; printf '# Mi estilo\n[c](color.md)\n' > "$mtmp/hsrc/READM
 if [ -d "$ROOT/plugins/lf/house-style" ]; then
   HOME="$mtmp/home" CLAUDE_CONFIG_DIR="$hc" bash "$ROOT/plugins/lf/scripts/install.sh" --only=claude-md >/dev/null 2>&1
   hcheck "$(grep -c 001978 "$hc/lf/house-style/color.md")" "$(grep -c 001978 "$ROOT/plugins/lf/house-style/color.md")" "install: copia el house style de serie"
+else echo "  skip house-style de serie (no está en este repo)"
 fi
 CLAUDE_CONFIG_DIR="$hc" bash "$HS" "$mtmp/hsrc" >/dev/null
 hcheck "$(cat "$hc/lf/house-style/color.md")|$([ -f "$hc/lf/house-style/.custom" ] && echo custom)|$(grep -c README "$hc/lf/house-style/INDEX.md")" "azul|custom|1" "house-style.sh <carpeta>: copia, marca .custom y crea INDEX.md"
@@ -180,6 +181,7 @@ CLAUDE_CONFIG_DIR="$hc" bash "$HS" /no/existe >/dev/null 2>&1; hcheck "$?" "1" "
 if [ -d "$ROOT/plugins/lf/house-style" ]; then
   CLAUDE_CONFIG_DIR="$hc" bash "$HS" --reset >/dev/null
   hcheck "$([ -f "$hc/lf/house-style/.custom" ] && echo custom || echo serie)|$(ls "$hc/lf/house-style" | wc -l)" "serie|$(ls "$ROOT/plugins/lf/house-style" | wc -l)" "house-style.sh --reset: vuelve al de serie"
+else echo "  skip house-style.sh --reset (no hay house style de serie en este repo)"
 fi
 # install.sh paso config: perfil y elecciones en config.json; una segunda ejecución conserva lo no indicado
 LF_INSTALL="$ROOT/plugins/lf/scripts/install.sh"; cc="$mtmp/cfg"
